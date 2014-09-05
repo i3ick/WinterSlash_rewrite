@@ -15,6 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import commands.Joingame;
+import commands.MainCommand;
+import commands.Subcommands;
 
 public class WinterSlashMain extends JavaPlugin{
 
@@ -96,7 +98,6 @@ public class WinterSlashMain extends JavaPlugin{
 
  		
  		// register commands
- 		
  		this.getCommand("ws").setExecutor(new MainCommand(this));
  		
  		

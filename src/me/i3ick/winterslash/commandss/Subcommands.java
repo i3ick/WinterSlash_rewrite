@@ -83,7 +83,7 @@ public class Subcommands {
          WinterSlashMain.getInstance().saveConfig();
 		
          //adds the player to the game
-         WinterSlashManager.getManager().addPlayers(player, arenaName);
+         WinterSlashController.getManager().addPlayers(player, arenaName);
 
 		
 		

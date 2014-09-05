@@ -33,7 +33,6 @@ public class MainCommand implements CommandExecutor{
 					 return true;
 				 }
 				subcmnds.wsjoin(player, args[1]);
-				
 			}
 				
 		
