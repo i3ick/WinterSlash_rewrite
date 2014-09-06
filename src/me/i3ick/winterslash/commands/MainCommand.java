@@ -10,31 +10,31 @@ import org.bukkit.entity.Player;
 
 public class MainCommand implements CommandExecutor {
 
-	WinterSlashMain plugin;
-	Subcommands subcmnds;
+    WinterSlashMain plugin;
+    Subcommands subcmnds;
 
-	public MainCommand(WinterSlashMain passedPlugin) {
+    public MainCommand(WinterSlashMain passedPlugin) {
 
-		subcmnds = new Subcommands(passedPlugin);
-		this.plugin = passedPlugin;
-	}
+        subcmnds = new Subcommands(passedPlugin);
+        this.plugin = passedPlugin;
+    }
 
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String label,
-			String[] args) {
-		Player player = (Player) sender;
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label,
+            String[] args) {
+        Player player = (Player) sender;
 
-		// joining the arena
-		if (args[0].equalsIgnoreCase("join")) {
-			if (args.length < 1) {
-				player.sendMessage(ChatColor.RED
-						+ "You didn't specify arena name");
-				return true;
-			}
-			subcmnds.wsjoin(player, args[1]);
-		}
+        // joining the arena
+        if (args[0].equalsIgnoreCase("join")) {
+            if (args.length < 1) {
+                player.sendMessage(ChatColor.RED
+                        + "You didn't specify arena name");
+                return true;
+            }
+            subcmnds.wsjoin(player, args[1]);
+        }
 
-		return false;
-	}
+        return false;
+    }
 
 }

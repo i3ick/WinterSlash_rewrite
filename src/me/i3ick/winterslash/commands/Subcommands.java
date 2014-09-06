@@ -11,93 +11,91 @@ import me.i3ick.winterslash.WinterSlashMain;
 
 public class Subcommands {
 
-	WinterSlashMain plugin;
+    WinterSlashMain plugin;
 
-	public Subcommands(WinterSlashMain PassPlugin) {
-		this.plugin = PassPlugin;
-		this.plugin = (WinterSlashMain) WinterSlashMain.getInstance();
-	}
+    public Subcommands(WinterSlashMain PassPlugin) {
+        this.plugin = PassPlugin;
+    }
 
-	FileConfiguration config = plugin.getConfig();
+    FileConfiguration config = plugin.getConfig();
 
-	// instance the main class
+    // instance the main class
 
-	// Subcommand
+    // Subcommand
 
-	public void wsjoin(Player player, String arenaName) {
+    public void wsjoin(Player player, String arenaName) {
 
-		int maxplayers = config.getInt("arenas." + arenaName + ".maxPlayers");
-		// checks permission
-		if (!player.hasPermission("freezetag.ftj")) {
-			player.sendMessage("No permission");
-			return;
-		}
+        int maxplayers = config.getInt("arenas." + arenaName + ".maxPlayers");
+        // checks permission
+        if (!player.hasPermission("freezetag.ftj")) {
+            player.sendMessage("No permission");
+            return;
+        }
 
-		if (WinterSlashController.getInstance().getArena(arenaName) == null) {
-			player.sendMessage(ChatColor.RED + "This arena doesn't exist");
-			return;
-		}
+        if (WinterSlashController.getInstance().getArena(arenaName) == null) {
+            player.sendMessage(ChatColor.RED + "This arena doesn't exist");
+            return;
+        }
 
-		if (((WinterSlashMain) WinterSlashMain.getInstance())
-				.isInventoryEmpty(player)) {
-			player.sendMessage(ChatColor.YELLOW
-					+ "Please empty your inventory!");
-			return;
-		}
+        if (WinterSlashMain.isInventoryEmpty(player)) {
+            player.sendMessage(ChatColor.YELLOW
+                    + "Please empty your inventory!");
+            return;
+        }
 
-		if (WinterSlashController.getManager().getArena(arenaName).getPlayers()
-				.contains(player.getName())) {
-			player.sendMessage(ChatColor.YELLOW
-					+ "You are already in this arena!");
-			return;
-		}
+        if (WinterSlashController.getManager().getArena(arenaName).getPlayers()
+                .contains(player.getName())) {
+            player.sendMessage(ChatColor.YELLOW
+                    + "You are already in this arena!");
+            return;
+        }
 
-		if (WinterSlashController.getInstance().getArena(arenaName).isInGame()) {
-			player.sendMessage(ChatColor.YELLOW
-					+ "There is a game currently running in this arena!");
-			return;
-		}
+        if (WinterSlashController.getInstance().getArena(arenaName).isInGame()) {
+            player.sendMessage(ChatColor.YELLOW
+                    + "There is a game currently running in this arena!");
+            return;
+        }
 
-		if (!(args.length == 1)) {
-			player.sendMessage(ChatColor.YELLOW
-					+ "Proper forumalation is: /ftj <arenaname>");
-			return;
-		} else {
-			player.sendMessage(ChatColor.YELLOW
-					+ "You have been put on the games waiting list.");
+        if (!(args.length == 1)) {
+            player.sendMessage(ChatColor.YELLOW
+                    + "Proper forumalation is: /ftj <arenaname>");
+            return;
+        } else {
+            player.sendMessage(ChatColor.YELLOW
+                    + "You have been put on the games waiting list.");
 
-			// saves player location
+            // saves player location
 
-			config.set("PlayerData." + player.getName() + ".X", player
-					.getLocation().getBlockX());
-			config.set("PlayerData." + player.getName() + ".Y", player
-					.getLocation().getBlockY());
-			config.set("PlayerData." + player.getName() + ".Z", player
-					.getLocation().getBlockZ());
-			config.set("PlayerData." + player.getName() + ".Yaw", player
-					.getLocation().getYaw());
-			config.set("PlayerData." + player.getName() + ".Pitch", player
-					.getLocation().getPitch());
-			config.set("PlayerData." + player.getName() + ".World",
-					Bukkit.getName());
-			config.set("PlayerData." + player.getName() + ".World",
-					Bukkit.getName());
-			config.options().copyDefaults(true);
-			WinterSlashMain.getInstance().saveConfig();
+            config.set("PlayerData." + player.getName() + ".X", player
+                    .getLocation().getBlockX());
+            config.set("PlayerData." + player.getName() + ".Y", player
+                    .getLocation().getBlockY());
+            config.set("PlayerData." + player.getName() + ".Z", player
+                    .getLocation().getBlockZ());
+            config.set("PlayerData." + player.getName() + ".Yaw", player
+                    .getLocation().getYaw());
+            config.set("PlayerData." + player.getName() + ".Pitch", player
+                    .getLocation().getPitch());
+            config.set("PlayerData." + player.getName() + ".World",
+                    Bukkit.getName());
+            config.set("PlayerData." + player.getName() + ".World",
+                    Bukkit.getName());
+            config.options().copyDefaults(true);
+            WinterSlashMain.getInstance().saveConfig();
 
-			// adds the player to the game
-			WinterSlashController.getManager().addPlayers(player, arenaName);
+            // adds the player to the game
+            WinterSlashController.getManager().addPlayers(player, arenaName);
 
-			// This starts the game
-			if (wsplayersHM.size() >= maxplayers) {
+            // This starts the game
+            if (wsplayersHM.size() >= maxplayers) {
 
-				// initiates arena manager
+                // initiates arena manager
 
-				ItemStack revivor = new ItemStack(Material.BLAZE_ROD, 1);
-				ItemStack sword = new ItemStack(Material.WOOD_SWORD, 1);
+                ItemStack revivor = new ItemStack(Material.BLAZE_ROD, 1);
+                ItemStack sword = new ItemStack(Material.WOOD_SWORD, 1);
 
-			}
-		}
-	}
+            }
+        }
+    }
 
 }

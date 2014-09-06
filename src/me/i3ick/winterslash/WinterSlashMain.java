@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.i3ick.winterslash.commands.MainCommand;
+
 import org.bukkit.Bukkit;
 import org.bukkit.WorldCreator;
 import org.bukkit.command.Command;
@@ -14,118 +16,94 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import commands.Joingame;
-import commands.MainCommand;
-import commands.Subcommands;
-
 public class WinterSlashMain extends JavaPlugin {
 
-	// ARRRAY
-	public ArrayList<String> frozen = new ArrayList<String>();
-	public ArrayList<String> frozenred = new ArrayList<String>();
-	public ArrayList<String> frozengreen = new ArrayList<String>();
-	public ArrayList<String> ftag = new ArrayList<String>();
-	public ArrayList<String> beaconlist = new ArrayList<String>();
+    public ArrayList<String> frozen = new ArrayList<String>();
+    public ArrayList<String> frozenred = new ArrayList<String>();
+    public ArrayList<String> frozengreen = new ArrayList<String>();
+    public ArrayList<String> ftag = new ArrayList<String>();
+    public ArrayList<String> beaconlist = new ArrayList<String>();
 
-	public HashMap<String, Player> wsplayersHM = new HashMap<String, Player>();
-	public HashMap<String, Player> wsred = new HashMap<String, Player>();
-	public HashMap<String, Player> wsgreen = new HashMap<String, Player>();
-	Map<String, ArrayList<Player>> wsredmap = new HashMap<String, ArrayList<Player>>();
-	Map<String, ArrayList<String>> wsgreenmap = new HashMap<>();
+    public HashMap<String, Player> wsplayersHM = new HashMap<String, Player>();
+    public HashMap<String, Player> wsred = new HashMap<String, Player>();
+    public HashMap<String, Player> wsgreen = new HashMap<String, Player>();
+    Map<String, ArrayList<Player>> wsredmap = new HashMap<String, ArrayList<Player>>();
+    Map<String, ArrayList<String>> wsgreenmap = new HashMap<>();
 
-	// VARIABLE
 
-	private static WinterSlashMain main;
 
-	public static JavaPlugin INSTANCE;
 
-	public static JavaPlugin getInstance() {
-		return INSTANCE;
-	}
 
-	{
-		INSTANCE = this;
-	}
+    @Override
+    public void onDisable() {
 
-	// ENABLE DISABLE
+        getLogger().info("WinterSlash Plugin Disabled!");
 
-	@Override
-	public void onDisable() {
+    }
 
-		getLogger().info("WinterSlash Plugin Disabled!");
+    @Override
+    public void onEnable() {
+        final FileConfiguration config = this.getConfig();
 
-	}
 
-	@Override
-	public void onEnable() {
+        // load world
+        File configFile = new File(getDataFolder(), "config.yml");
+        if (!configFile.exists()) {
+            this.getConfig().addDefault("Redspawn" + ".X", null);
+            this.getConfig().addDefault("Worlds" + ".World", null);
+            this.getConfig().addDefault("Greenspawn" + ".X", null);
+            this.getConfig().addDefault("Lobby" + ".X", null);
+            this.getConfig().addDefault("arenas" + ".X", null);
+            this.getConfig().addDefault("PlayerData" + ".X", null);
+            this.getConfig().addDefault("DeathPosition" + ".X", null);
+            this.getConfig().addDefault("MinPlayerNumber" + ".X", null);
 
-		// ready config
-		final FileConfiguration config = this.getConfig();
+            this.getConfig().options().copyDefaults(true);
+            this.saveConfig();
+            saveDefaultConfig();
+        }
+        String playerWorld = this.getConfig().getString("Worlds" + ".World");
+        WorldCreator c = new WorldCreator(playerWorld);
+        c.createWorld();
 
-		// we assign "main" variable a value
-		this.main = this;
+        getLogger().info("WinterSlash: Worldname: " + playerWorld);
 
-		// load world
-		File configFile = new File(getDataFolder(), "config.yml");
-		if (!configFile.exists()) {
-			this.getConfig().addDefault("Redspawn" + ".X", null);
-			this.getConfig().addDefault("Worlds" + ".World", null);
-			this.getConfig().addDefault("Greenspawn" + ".X", null);
-			this.getConfig().addDefault("Lobby" + ".X", null);
-			this.getConfig().addDefault("arenas" + ".X", null);
-			this.getConfig().addDefault("PlayerData" + ".X", null);
-			this.getConfig().addDefault("DeathPosition" + ".X", null);
-			this.getConfig().addDefault("MinPlayerNumber" + ".X", null);
+        // register commands
+        this.getCommand("ws").setExecutor(new MainCommand(this));
 
-			this.getConfig().options().copyDefaults(true);
-			this.saveConfig();
-			saveDefaultConfig();
-		}
-		String playerWorld = this.getConfig().getString("Worlds" + ".World");
-		WorldCreator c = new WorldCreator(playerWorld);
-		c.createWorld();
+        // register events
+        this.getServer().getPluginManager()
+                .registerEvents(new WinterSlashEvents(this), this);
 
-		getLogger().info("WinterSlash: Worldname: " + playerWorld);
+        WinterSlashManager.getInstance().loadArenas();
+        WinterSlashManager.getInstance().setup();
 
-		// register commands
-		this.getCommand("ws").setExecutor(new MainCommand(this));
+        getLogger().info("Plugin Enabled!");
+    }
 
-		// register events
-		this.getServer().getPluginManager()
-				.registerEvents(new WinterSlashEvents(this), this);
+    public static boolean isInt(String sender) {
+        try {
+            Integer.parseInt(sender);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
 
-		WinterSlashManager.getInstance().loadArenas();
-		WinterSlashManager.getInstance().setup();
+    public static boolean isInventoryEmpty(Player p) {
+        for (ItemStack item : p.getInventory().getContents()) {
+            if (item != null)
+                return true;
+        }
+        return false;
+    }
 
-		getLogger().info("Plugin Enabled!");
-	}
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd,
+            String CommandLabel, String[] args) {
+        Player player = (Player) sender;
+        Player[] onlinep = Bukkit.getServer().getOnlinePlayers();
 
-	// RETURN BOOLEANS
-
-	public static boolean isInt(String sender) {
-		try {
-			Integer.parseInt(sender);
-		} catch (NumberFormatException nfe) {
-			return false;
-		}
-		return true;
-	}
-
-	public static boolean isInventoryEmpty(Player p) {
-		for (ItemStack item : p.getInventory().getContents()) {
-			if (item != null)
-				return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd,
-			String CommandLabel, String[] args) {
-		Player player = (Player) sender;
-		Player[] onlinep = Bukkit.getServer().getOnlinePlayers();
-
-		return false;
-	}
-
+        return false;
+    }
 }
