@@ -34,7 +34,7 @@ public class WinterSlashArena {
     // Location Constructor
 
     public WinterSlashArena(String arenaName, Location joinLocation,
-            Location redLocation, Location greenLocation, Location endLocation,
+            Location redLocation, Location greenLocation,
             int maxPlayers) {
 
         /**
@@ -47,7 +47,6 @@ public class WinterSlashArena {
         this.joinLocation = joinLocation;
         this.redspawn = redLocation;
         this.greenspawn = greenLocation;
-        this.endLocation = endLocation;
         this.maxPlayers = maxPlayers;
 
         // add this constructor to arena objects array
@@ -91,53 +90,53 @@ public class WinterSlashArena {
 
     // Frozen array
 
-    public void SetFrozen(String player) {
+    public void setFrozen(String player) {
         frozen.add(player);
     }
 
-    public void UnsetFrozen(String player) {
+    public void unsetFrozen(String player) {
         frozen.remove(player);
     }
 
-    public ArrayList<String> GetFrozen() {
+    public ArrayList<String> getFrozen() {
         return frozen;
     }
 
     // sign click
 
-    public void SetSign(String player) {
+    public void setSign(String player) {
         sign.add(player);
     }
 
-    public void ClearSign(String player) {
+    public void clearSign(String player) {
         sign.remove(player);
     }
 
-    public ArrayList<String> GetSign() {
+    public ArrayList<String> getSign() {
         return sign;
     }
 
     // Game array
 
-    public void SetGamers(String player) {
+    public void setGamers(String player) {
         activeGamers.add(player);
     }
 
-    public void RemoveGamers(String player) {
+    public void removeGamers(String player) {
         activeGamers.remove(player);
     }
 
-    public ArrayList<String> GetGamers() {
+    public ArrayList<String> getGamers() {
         return activeGamers;
     }
 
     // Returns
 
-    public void ClearHash(String player) {
+    public void clearHash(String player) {
         players.remove(player);
     }
 
-    public HashMap<String, Team> GetHash() {
+    public HashMap<String, Team> getHash() {
         return players;
     }
 
@@ -155,14 +154,6 @@ public class WinterSlashArena {
 
     public void setJoinLocation(Location joinLocation) {
         this.joinLocation = joinLocation;
-    }
-
-    public Location getEndLocation() {
-        return this.endLocation;
-    }
-
-    public void setEndLocation(Location endLocation) {
-        this.endLocation = endLocation;
     }
 
     public String getName() {
