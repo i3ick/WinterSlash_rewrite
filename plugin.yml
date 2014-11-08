@@ -1,0 +1,51 @@
+name: WinterSlash2.0
+main: me.i3ick.winterslash.WinterSlashMain
+version: 1.8
+description: WinterSlash game
+commands: 
+  ws: 
+    description: "Main WinterSlash command"
+  leave: 
+    description: "Leave the game"
+  wssetgreen: 
+    description: "set green spawn"
+  wssetred: 
+    description: "set red spawn"
+  wspn: 
+    description: "set the number of players"  
+  list: 
+    description: "list arenas"
+  wscreate: 
+    description: "create arena"
+  wssetlobby: 
+    description: "create lobby"
+  wsfs: 
+    description: "force start"
+  wsfe: 
+    description: "force end"
+  remove: 
+    description: "remove arena"
+
+permissions: 
+  winterslash.*: 
+    description: "Gain access to all freezetag commands!"
+    children: 
+      winterslash.leave: true
+      winterslash.join: true
+      winterslash.list: true
+      winterslash.pn: true
+      winterslash.remove: true
+      freezetag.ftsetred: true
+      freezetag.green: true
+      freezetag.red: true
+      freezetag.signplace: true
+      freezetag.create: true
+      freezetag.ftsetlobby: true
+    default: op
+  winterslashplayers.*: 
+    description: "Give normal players permission to play Freezetag!"
+    children: 
+      winterslash.leave: true
+      winterslash.join: true
+      winterslash.list: true
+    default: player

@@ -40,7 +40,11 @@ public class MainCommand implements CommandExecutor {
         Player player = (Player) sender;
 
         // joining the arena
-        if (args[1].equalsIgnoreCase("join")) {
+        if (args[0].equalsIgnoreCase("join")) {
+            if(!sender.hasPermission("winterslash.join")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
             if (!(args.length == 2)) {
                 player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws join <arenaname>");
             }
@@ -49,20 +53,32 @@ public class MainCommand implements CommandExecutor {
         }
         
         if (args[0].equalsIgnoreCase("list")) {
-            if (!(args.length == 1)) {
+            if(!sender.hasPermission("winterslash.list")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            if (!(args.length >= 1)) {
                 player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws list");
             }
             subcmnds.list(player);
             return true;
         }
         
-        if(args[1].equalsIgnoreCase("leave")){
+        if(args[0].equalsIgnoreCase("leave")){
+            if(!sender.hasPermission("winterslash.leave")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
             if(args.length == 1){
                 subcmnds.leave(player);
             }
         }
         
-        if(args[1].equalsIgnoreCase("pn")){
+        if(args[0].equalsIgnoreCase("pn")){
+            if(!sender.hasPermission("winterslash.pn")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
             if(args.length == 2){
                 if(isInt(args[2])){
                 int num = Integer.parseInt(args[2]);
@@ -75,6 +91,19 @@ public class MainCommand implements CommandExecutor {
                 }
             }
             player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws pn <number>");
+        }
+        
+        if(args[0].equalsIgnoreCase("remove")){
+            if(!sender.hasPermission("winterslash.remove")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            if(args.length == 2){
+                subcmnds.removeArena(args[1], player);
+            }
+            else{
+                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws remove <arenaname>");
+            }
         }
 
         return false;

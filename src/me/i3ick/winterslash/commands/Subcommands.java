@@ -17,14 +17,14 @@ import me.i3ick.winterslash.WinterSlashMain;
 public class Subcommands {
 
     WinterSlashMain plugin;
-    WinterSlashGameController plugin2;
+    WinterSlashGameController gameController;
 
     public Subcommands(WinterSlashMain passPlugin) {
         this.plugin = passPlugin;
     }
     
     public Subcommands(WinterSlashGameController passPlugin){
-        this.plugin2 = passPlugin;
+        this.gameController = passPlugin;
     }
     
 
@@ -114,12 +114,17 @@ public class Subcommands {
         }
     }
     
+    /**
+     * Removes the player from the game and teleports him to his initial
+     * location.
+     * @param player
+     */
     
     public void leave(Player player){
         for(String arenas: plugin.getArenaData().getConfigurationSection("arenas").getKeys(false)){
             WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
             if(arena.getGamers().contains(player)){
-                WinterSlashGameController.removePlayers(player, arena.getName());
+                gameController.removePlayers(player, arena.getName());
             }
         }
     }
@@ -152,6 +157,25 @@ public class Subcommands {
         config.set("MinPlayerNumber", maxplayernumber);
         config.options().copyDefaults(true);
         player.sendMessage(ChatColor.YELLOW + "Player number set.");
+    }
+    
+    
+    /**
+     * Removes an arena
+     * @param player
+     */
+    
+    public void removeArena (String Arenaname, Player sender){
+        for(String arenas: plugin.getArenaData().getConfigurationSection("arenas").getKeys(false)){
+            if(arenas.equals(Arenaname)){
+                plugin.getArenaData().getConfigurationSection("arenas").set(Arenaname, null);
+                sender.sendMessage(Color.yellow + "Arena " + Arenaname + " sucessfully deleted!");
+            }
+            else{
+                sender.sendMessage(Color.red + "No such arena.");
+            }
+        }
+        
     }
     
     

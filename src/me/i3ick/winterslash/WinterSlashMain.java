@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import me.i3ick.winterslash.commands.MainCommand;
 
@@ -19,28 +20,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class WinterSlashMain extends JavaPlugin {
-
-    public ArrayList<String> frozen = new ArrayList<String>();
-    public ArrayList<String> frozenred = new ArrayList<String>();
-    public ArrayList<String> frozengreen = new ArrayList<String>();
-    public ArrayList<String> ftag = new ArrayList<String>();
-    public ArrayList<String> beaconlist = new ArrayList<String>();
-
-    public HashMap<String, Player> wsplayersHM = new HashMap<String, Player>();
-    public HashMap<String, Player> wsred = new HashMap<String, Player>();
-    public HashMap<String, Player> wsgreen = new HashMap<String, Player>();
-    Map<String, ArrayList<Player>> wsredmap = new HashMap<String, ArrayList<Player>>();
-    Map<String, ArrayList<String>> wsgreenmap = new HashMap<>();
-
-
-
+    
     WinterSlashGameController plugin;
     
-    public WinterSlashMain (WinterSlashGameController passPlug){
+    public WinterSlashMain(WinterSlashGameController passPlug){
         this.plugin = passPlug;
     }
-
-    
 
 
     @Override
@@ -107,6 +92,7 @@ public class WinterSlashMain extends JavaPlugin {
 
         // register events
         this.getServer().getPluginManager().registerEvents(new WinterSlashEvents(this), this);
+        this.getServer().getPluginManager().registerEvents(new WinterSlashSigns(this), this);
         plugin.loadArenas();
         getLogger().info("Plugin Enabled!");
     }
@@ -118,15 +104,6 @@ public class WinterSlashMain extends JavaPlugin {
         return arenaConfig;
     }
     
-    
-    public static boolean isInt(String sender) {
-        try {
-            Integer.parseInt(sender);
-        } catch (NumberFormatException nfe) {
-            return false;
-        }
-        return true;
-    }
 
     public static boolean isInventoryEmpty(Player p) {
         for (ItemStack item : p.getInventory().getContents()) {
@@ -134,6 +111,17 @@ public class WinterSlashMain extends JavaPlugin {
                 return true;
         }
         return false;
+    }
+    
+    public void saveArenaData(){
+    File f = new File(this.getDataFolder() + File.separator + "arenaData.yml");
+    FileConfiguration arenaConfig = YamlConfiguration.loadConfiguration(f);
+    try {
+        arenaConfig.save(f);
+        getLogger().info("file saved!");
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
     }
 
 

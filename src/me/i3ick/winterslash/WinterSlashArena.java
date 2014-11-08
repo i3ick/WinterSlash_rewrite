@@ -23,13 +23,15 @@ public class WinterSlashArena {
     private ArrayList<String> frozen = new ArrayList<String>();
     private ArrayList<String> sign = new ArrayList<String>();
     private ArrayList<String> activeGamers = new ArrayList<String>();
+    private ArrayList<String> greenteam = new ArrayList<String>();
+    private ArrayList<String> redteam = new ArrayList<String>();
+    private ArrayList<String> frozengreen = new ArrayList<String>();
+    private ArrayList<String> frozenred = new ArrayList<String>();
 
-    // Username suggests using arrays for teams instead of HashMaps!!!!
+    // Username suggests using arrays for teams ead of HashMaps!!!!
 
     private HashMap<String, Team> players = new HashMap<String, Team>();
     private Location redspawn, greenspawn, joinLocation, endLocation;
-
-    // needs enum ^^^^
 
     // Location Constructor
 
@@ -63,11 +65,24 @@ public class WinterSlashArena {
                 return;
 
             } else {
-
                 red.add(p);
                 players.put(p, Team.RED);
                 return;
             }
+        }
+    }
+    
+    public void setPlayers(Player p){
+        ingamePlayers.add(p.getName());
+    }
+    
+    
+    public void removePlayers() {
+        for (String p : getPlayers()) {
+            red.remove(p);
+            green.remove(p);
+            ingamePlayers.remove(p);
+            return;
         }
     }
 
@@ -83,6 +98,9 @@ public class WinterSlashArena {
             return null;
         }
     }
+    
+
+
 
     /*
      * public Team getTeam(Player p){ return players.get(p.getName()); }
@@ -90,15 +108,15 @@ public class WinterSlashArena {
 
     // Frozen array
 
-    public void setFrozen(String player) {
+    public void setUnfrozen(String player) {
         frozen.add(player);
     }
 
-    public void unsetFrozen(String player) {
+    public void setFrozen(String player) {
         frozen.remove(player);
     }
 
-    public ArrayList<String> getFrozen() {
+    public ArrayList<String> getUnfrozen() {
         return frozen;
     }
 
@@ -131,6 +149,38 @@ public class WinterSlashArena {
     }
 
     // Returns
+    
+    public void addRedFrozen(String player) {
+        frozenred.add(player);
+    }
+    
+    public void removeRedFrozen(String player) {
+        frozenred.remove(player);
+    }
+    
+    public ArrayList<String> getRedFrozen() {
+        return frozenred;
+    }
+    
+    public ArrayList<String> getGreenTeam() {
+        return green;
+    }
+    
+    public ArrayList<String> getRedTeam() {
+        return red;
+    }
+    
+    public ArrayList<String> getGreenFrozen() {
+    return frozengreen;
+    }
+    
+    public void addGreenFrozen(String player) {
+        frozengreen.add(player);
+        }
+    
+    public void removeGreenFrozen(String player) {
+        frozengreen.remove(player);
+        }
 
     public void clearHash(String player) {
         players.remove(player);
@@ -171,6 +221,8 @@ public class WinterSlashArena {
     public ArrayList<String> getPlayers() {
         return this.ingamePlayers;
     }
+    
+
 
     // Booleans
 
@@ -204,5 +256,16 @@ public class WinterSlashArena {
             Bukkit.getPlayer(s).sendMessage(message);
         }
     }
+    
+    
+    public boolean ifPlayerIsRed(Player p) {
+        for (String p1 : players.keySet()) {
+        if(players.get(p1) == Team.RED){
+            return true;
+        }
+        }
+        return false;
+        }
+
 
 }
