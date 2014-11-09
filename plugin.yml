@@ -1,4 +1,4 @@
-name: WinterSlash2.0
+name: WinterSlash
 main: me.i3ick.winterslash.WinterSlashMain
 version: 1.8
 description: WinterSlash game
@@ -20,11 +20,9 @@ permissions:
       winterslash.signplace: true
       winterslash.create: true
       winterslash.setlobby: true
-    default: op
   winterslashplayers.*: 
     description: "Give normal players permission to play Freezetag!"
     children: 
       winterslash.leave: true
       winterslash.join: true
       winterslash.list: true
-    default: player

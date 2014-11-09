@@ -38,6 +38,8 @@ public class MainCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         Player player = (Player) sender;
 
+        plugin.getLogger().info("Hiownafwo");
+        plugin.getLogger().info(args[0]);
         // joining the arena
         if (args[0].equalsIgnoreCase("join")) {
             if(!sender.hasPermission("winterslash.join")){
@@ -46,9 +48,9 @@ public class MainCommand implements CommandExecutor {
             }
             if (!(args.length == 2)) {
                 player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws join <arenaname>");
+                return true;
             }
             subcmnds.join(player, args[2]);
-            return true;
         }
         
         if (args[0].equalsIgnoreCase("list")) {
@@ -58,9 +60,9 @@ public class MainCommand implements CommandExecutor {
             }
             if (!(args.length >= 1)) {
                 player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws list");
+                return true;
             }
             subcmnds.list(player);
-            return true;
         }
         
         if(args[0].equalsIgnoreCase("leave")){
