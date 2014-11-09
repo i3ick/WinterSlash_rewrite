@@ -18,12 +18,9 @@ public class WinterSlashSigns implements Listener{
     private WinterSlashMain plugin;
     private WinterSlashGameController gameController;
     
-    public WinterSlashSigns(WinterSlashMain PassPlug){
+    public WinterSlashSigns(WinterSlashMain PassPlug, WinterSlashGameController PassPlug2){
         this.plugin = PassPlug;
-    }
-    
-    public WinterSlashSigns(WinterSlashGameController PassPlug){
-        this.gameController = PassPlug;
+        this.gameController = PassPlug2;
     }
 
    

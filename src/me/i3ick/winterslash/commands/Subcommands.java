@@ -23,27 +23,17 @@ public class Subcommands {
     WinterSlashGameController gameController;
     WinterSlashArena arena;
 
-    public Subcommands(WinterSlashMain passPlugin) {
+    public Subcommands(WinterSlashMain passPlugin, WinterSlashGameController passPlug2, WinterSlashArena passplug3) {
         this.plugin = passPlugin;
+        this.arena = passplug3;
+        this.gameController = passPlug2;
+        
     }
-    
-    public Subcommands(WinterSlashGameController passPlugin){
-        this.gameController = passPlugin;
-    }
-    
-    public Subcommands(WinterSlashArena passPlugin){
-        this.arena = passPlugin;
-    }
-    
 
     FileConfiguration config = plugin.getConfig();
     FileConfiguration arenaData = plugin.getArenaData();
 
-   
-
-  
-
-    
+ 
     
     /**
      * This method runs checks on the arena status and

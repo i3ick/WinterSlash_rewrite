@@ -20,12 +20,9 @@ public class WinterSlashGameController {
     WinterSlashMain plugin;
     WinterSlashArena arena;
     
-    public WinterSlashGameController( WinterSlashMain passPlugin){
+    public WinterSlashGameController( WinterSlashMain passPlugin, WinterSlashArena passPlugin2){
         this.plugin = passPlugin;
-    }
-    
-    public WinterSlashGameController( WinterSlashArena passPlugin){
-        this.arena = passPlugin;
+        this.arena = passPlugin2;
     }
     
     public static WinterSlashArena getArena(String name){

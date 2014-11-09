@@ -19,7 +19,7 @@ public class MainCommand implements CommandExecutor {
 
     public MainCommand(WinterSlashMain passedPlugin) {
 
-        subcmnds = new Subcommands(passedPlugin);
+        subcmnds = new Subcommands(passedPlugin, null, null);
         this.plugin = passedPlugin;
     }
     
@@ -37,12 +37,14 @@ public class MainCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         Player player = (Player) sender;
+        plugin.getLogger().info("gfwagagwaga");
         
         if(!(player instanceof Player)){
-
+            plugin.getLogger().info("Ya fuck of ya stinky console m8 and come ingame like a man you fukin pussy!");
             plugin.getLogger().info("No, but srsly, you can't controll WinterSlash commands through the console");
             return true;
         }
+
 
         // joining the arena
         if (args[0].equalsIgnoreCase("join")) {

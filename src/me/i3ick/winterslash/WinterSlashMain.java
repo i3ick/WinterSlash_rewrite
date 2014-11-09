@@ -89,8 +89,8 @@ public class WinterSlashMain extends JavaPlugin {
         getLogger().info("rdwad");
 
         // register events
-        this.getServer().getPluginManager().registerEvents(new WinterSlashEvents(this), this);
-        this.getServer().getPluginManager().registerEvents(new WinterSlashSigns(this), this);
+        this.getServer().getPluginManager().registerEvents(new WinterSlashEvents(this, null), this);
+        this.getServer().getPluginManager().registerEvents(new WinterSlashSigns(this, null), this);
         
         // load arena's   
         FileConfiguration arenaData = this.getArenaData();

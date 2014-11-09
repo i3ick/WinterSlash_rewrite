@@ -32,12 +32,9 @@ public class WinterSlashEvents implements Listener{
     private WinterSlashMain plugin;
     private WinterSlashGameController gameController;
     
-    public WinterSlashEvents(WinterSlashMain PassPlug){
+    public WinterSlashEvents(WinterSlashMain PassPlug, WinterSlashGameController PassPlug2){
         this.plugin = PassPlug;
-    }
-    
-    public WinterSlashEvents(WinterSlashGameController PassPlug){
-        this.gameController = PassPlug;
+        this.gameController = PassPlug2;
     }
     
     
