@@ -35,8 +35,7 @@ public class MainCommand implements CommandExecutor {
 
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label,
-            String[] args) {
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         Player player = (Player) sender;
 
         // joining the arena
@@ -72,6 +71,7 @@ public class MainCommand implements CommandExecutor {
             if(args.length == 1){
                 subcmnds.leave(player);
             }
+            return true;
         }
         
         if(args[0].equalsIgnoreCase("pn")){
@@ -82,7 +82,7 @@ public class MainCommand implements CommandExecutor {
             if(args.length == 2){
                 if(isInt(args[2])){
                 int num = Integer.parseInt(args[2]);
-                subcmnds.playerNumber(num, player);
+                subcmnds.maxPlayerNumber(num, player);
                 }
                 else{
                     player.sendMessage(ChatColor.RED + args[2] + " is not a number!!!");
@@ -90,7 +90,7 @@ public class MainCommand implements CommandExecutor {
                     
                 }
             }
-            player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws pn <number>");
+            return true;
         }
         
         if(args[0].equalsIgnoreCase("remove")){
@@ -104,9 +104,99 @@ public class MainCommand implements CommandExecutor {
             else{
                 player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws remove <arenaname>");
             }
+            return true;
+        }
+        
+        if(args[0].equalsIgnoreCase("setred")){
+            if(!sender.hasPermission("winterslash.setred")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            if(args.length == 1){
+                subcmnds.setRed(player);
+            }
+            else{
+                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws setred");
+            }
+            return true;
+        }
+        
+        if(args[0].equalsIgnoreCase("setgreen")){
+            if(!sender.hasPermission("winterslash.setgreen")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            if(args.length == 1){
+                subcmnds.setGreen(player);
+            }
+            else{
+                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws setgreen");
+            }
+            return true;
+        }
+        
+        if(args[0].equalsIgnoreCase("setlobby")){
+            if(!sender.hasPermission("winterslash.setlobby")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            if(args.length == 1){
+                subcmnds.setLobby(player);
+            }
+            else{
+                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws setlobby");
+            }
+            return true;
         }
 
+        if(args[0].equalsIgnoreCase("create")){
+            if(!sender.hasPermission("winterslash.create")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            
+            if(args.length == 3){
+                if(!isInt(args[1])){
+                    player.sendMessage(ChatColor.RED + args[1] + " is not a number!");
+                    return true;
+                }
+                int playerNumber = Integer.parseInt(args[1]);
+                if(playerNumber < 4){
+                    player.sendMessage(ChatColor.YELLOW + " Minimum number of players is 4!");
+                    return true;
+                }
+                subcmnds.create(args[1], player, playerNumber);
+                return true;
+            }
+            else{
+                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws create <arenaname> <playernumber>");
+            }
+            
+            return true;
+        }
+        
+        if(args[0].equalsIgnoreCase("help")){
+            if(sender.hasPermission("winterslash.*")){
+                if(args.length == 1){
+                    subcmnds.helpMod(player);
+                }
+            }
+            else if(sender.hasPermission("winterslashplayers.*")){
+                if(args.length == 1){
+                    subcmnds.helpPlayer(player);
+                }
+            }
+            else{
+                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws help");
+            }
+            return true;
+        }
+        
+        
+        
+        
+        
+        
         return false;
     }
-
 }

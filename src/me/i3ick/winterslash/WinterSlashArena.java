@@ -14,7 +14,7 @@ public class WinterSlashArena {
     // Arena Name
     private String name;
 
-    // Array for arena objects
+    
     public static ArrayList<WinterSlashArena> arenaObjects = new ArrayList<WinterSlashArena>();
 
     public ArrayList<String> red = new ArrayList<String>();
@@ -32,30 +32,57 @@ public class WinterSlashArena {
 
     private HashMap<String, Team> players = new HashMap<String, Team>();
     private Location redspawn, greenspawn, joinLocation, endLocation;
+    private int maxPlayers;
+    private int minPlayers;
 
+    
     // Location Constructor
 
+    /**
+     * Constructor for gathering information necessary to create a new
+     * arena.
+     */
     public WinterSlashArena(String arenaName, Location joinLocation,
             Location redLocation, Location greenLocation,
-            int maxPlayers) {
-
-        /**
-         * Constructor for gathering information necessary to create a new
-         * arena.
-         */
+            int minPlayers) {
 
         // Initializing it all:
         this.name = arenaName;
         this.joinLocation = joinLocation;
         this.redspawn = redLocation;
         this.greenspawn = greenLocation;
-        this.maxPlayers = maxPlayers;
+        this.minPlayers = minPlayers;
 
         // add this constructor to arena objects array
         arenaObjects.add(this);
 
     }
 
+    public void setMaxPlayers(int maxPlayers) {
+        this.maxPlayers = maxPlayers;
+        arenaObjects.add(this);
+    }
+    
+    public int getMaxPlayers(){
+        return this.maxPlayers;
+    }
+    
+    public void redSpawn(Location redLocation) {
+        this.redspawn = redLocation;
+        arenaObjects.add(this);
+    }
+    
+    public void greenSpawn(Location greenLocation) {
+        this.greenspawn = greenLocation;
+        arenaObjects.add(this);
+    }
+    
+    public void lobbySpawn(Location lobbyLocation) {
+        this.joinLocation = lobbyLocation;
+        arenaObjects.add(this);
+    }
+    
+    
     // Sort teams
     public void addPlayers() {
         for (String p : getPlayers()) {
@@ -86,25 +113,10 @@ public class WinterSlashArena {
         }
     }
 
-    // red to red spawn, green to green spawn
 
-    public Location getLocation(Team team) {
-        switch (team) {
-        case RED:
-            return redspawn;
-        case GREEN:
-            return greenspawn;
-        default:
-            return null;
-        }
-    }
     
 
 
-
-    /*
-     * public Team getTeam(Player p){ return players.get(p.getName()); }
-     */
 
     // Frozen array
 
@@ -190,7 +202,7 @@ public class WinterSlashArena {
         return players;
     }
 
-    public Location getJoinLocation() {
+    public Location getLobbyLocation() {
         return this.joinLocation;
     }
 
@@ -214,8 +226,8 @@ public class WinterSlashArena {
         this.name = name;
     }
 
-    public int getMaxPlayers() {
-        return this.maxPlayers;
+    public int getMinPlayers() {
+        return this.minPlayers;
     }
 
     public ArrayList<String> getPlayers() {
@@ -226,7 +238,6 @@ public class WinterSlashArena {
 
     // Booleans
 
-    private int maxPlayers;
     private boolean inGame = false;
     /**
      * Boolean to determine if an arena is ingame or not (auto false)

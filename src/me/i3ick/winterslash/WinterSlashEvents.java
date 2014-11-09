@@ -1,7 +1,11 @@
 package me.i3ick.winterslash;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -15,8 +19,13 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 public class WinterSlashEvents implements Listener{
     
@@ -31,8 +40,11 @@ public class WinterSlashEvents implements Listener{
         this.gameController = PassPlug;
     }
     
-    // Save death location
     
+    /**
+     * Method for saving death location
+     * @param event
+     */
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player) {
@@ -64,11 +76,11 @@ public class WinterSlashEvents implements Listener{
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerMove(PlayerMoveEvent e) {
         
-        ConfigurationSection sec = plugin.getArenaData().getConfigurationSection("arenas");
-        if(sec == null){
+        ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
+        if(arenaData == null){
             return;
         }
-        for (String arenas: sec.getKeys(false)) {
+        for (String arenas: arenaData.getKeys(false)) {
             WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
             if(arena.getPlayers().contains(e.getPlayer().getUniqueId())){
         
@@ -142,6 +154,9 @@ public class WinterSlashEvents implements Listener{
 
     
     
+    //Add logic to prevent revivng tools from causing damage
+    //Add logic to prevent revivng tools from causing damage
+    //Add logic to prevent revivng tools from causing damage
     
     
       
@@ -160,7 +175,6 @@ public class WinterSlashEvents implements Listener{
 
         // GAME WINNING LOGIC  
           
-          //Method for getting the arena name which contains specific player
           ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
           if(arenaData == null){
               return;
@@ -211,8 +225,161 @@ public class WinterSlashEvents implements Listener{
                   }
                   return;
               }
+              return;
           }
       }
+     
+      
+      /**
+       * removes the player from the game if
+       * he disconnects
+       * @param e
+       */
+      @EventHandler
+      public void onDisconnect(PlayerQuitEvent e) {
+          Player player = e.getPlayer();  
+          for(String arenas: plugin.getArenaData().getConfigurationSection("arenas").getKeys(false)){
+              WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+              if(arena.getGamers().contains(player)){
+                  gameController.removePlayers(player, arena.getName());
+              }
+          }
+      }
+      
+      
+      
+      /**
+       * Blocks all commands for players that are ingame
+       * @param e
+       */
+      @EventHandler(priority = EventPriority.HIGHEST)
+      public void onServerCommand(PlayerCommandPreprocessEvent e) {
+          ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
+           if(arenaData == null){
+              return;
+          }
+           for (String arenas: arenaData.getKeys(false)) {
+              WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+              if(arena.getPlayers().contains(e.getPlayer().getName())){
+              if (e.getMessage().equals("/ws leave")) {
+                  return;
+              } else {
+                  if (e.getPlayer().isOp()) {
+                      return;
+                  } else {
+                      e.setCancelled(true);
+                      e.getPlayer().sendMessage(ChatColor.YELLOW + "Can't use commands while in game. Use '/ws leave' to leave");
+                  }
+              }
+              return;
+          } 
+        }
+      }
+      
+      
+    
+      /**
+       * Handles respawn gameplay logic
+       * freezing, teleporting, armor
+       * @param e
+       */
+      
+      @EventHandler (priority = EventPriority.HIGHEST)
+      public void onPlayerRespawn(PlayerRespawnEvent e){
+          Player p = e.getPlayer();
+          ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
+           if(arenaData == null){
+              return;
+          }
+           
+           for (String arenas: arenaData.getKeys(false)) {
+               WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+           if(!(arena.getPlayers().contains(p.getName()))){
+               return;
+           }
+           }
+           
+           for (String arenas: arenaData.getKeys(false)) {
+              WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+              if(arena.getPlayers().contains(p.getName())){
+                  arena.setUnfrozen(p.getName());
+                  
+                  
+                  //if p is red
+                   if (arena.ifPlayerIsRed(p)) {
+              if (arena.getUnfrozen().contains(p.getName())){
+                  e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR,1));
+                  p.teleport(arena.getRedSpawn());
+              }
+              else{
+                  e.getPlayer().getInventory().setHelmet(new ItemStack(Material.ICE,1));
+
+                  //set armor
+                //   classes.setarmor();
+                  
+                  
+                  
+                  // tp to death position
+                  int lastposX = arenaData.getInt("DeathPosition." + p.getName() + ".X");
+                  int lastposY = arenaData.getInt("DeathPosition." + p.getName() + ".Y");
+                  int lastposZ = arenaData.getInt("DeathPosition." + p.getName() + ".Z");
+                  String playerWorld = plugin.getConfig().getString("Worlds" + ".World");
+                  String world = p.getLocation().getWorld().getName();
+
+                  if(world != null)
+                  {
+                      Location lastpos = new Location((Bukkit.getWorld(world)), lastposX, lastposY, lastposZ);
+                      e.setRespawnLocation(lastpos);
+                  }
+                  else
+                  {
+                      Bukkit.getServer().createWorld(new WorldCreator(playerWorld).environment(World.Environment.NORMAL));
+                      plugin.getLogger().warning("The '" + "redspawn" + ".World" + "' world from config.yml does not exist or is not loaded !");
+                  }   
+              }
+          }
+
+
+
+                 //if p is green
+                  else if(!(arena.ifPlayerIsRed(p))) {
+              if (arena.getUnfrozen().contains(p.getName())){
+                  e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR,1));
+                  p.teleport(arena.getGreenSpawn());
+              }
+              else{
+                  e.getPlayer().getInventory().setHelmet(new ItemStack(Material.ICE,1));
+
+                  //set armor
+                 // classes.setarmor();
+                  
+                  
+                  
+                  // tp to death position
+                  int lastposX = arenaData.getInt("DeathPosition." + p.getName() + ".X");
+                  int lastposY = arenaData.getInt("DeathPosition." + p.getName() + ".Y");
+                  int lastposZ = arenaData.getInt("DeathPosition." + p.getName() + ".Z");
+                  String playerWorld = arenaData.getString("Worlds" + ".World");
+                  String world = p.getLocation().getWorld().getName();
+
+                  if(world != null)
+                  {
+                      Location lastpos = new Location(Bukkit.getWorld(world), lastposX, lastposY, lastposZ);
+                      p.teleport(lastpos);
+                  }
+                  else
+                  {
+                      Bukkit.getServer().createWorld(new WorldCreator(playerWorld).environment(World.Environment.NORMAL));
+                      plugin.getLogger().warning("The '" + "redspawn" + ".World" + "' world from config.yml does not exist or is not loaded !");
+                  }   
+              }
+              }
+                   return;
+                   }
+              }
+           }
+      
+      
     
     
     
