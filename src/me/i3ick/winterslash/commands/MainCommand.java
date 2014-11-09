@@ -39,11 +39,11 @@ public class MainCommand implements CommandExecutor {
         Player player = (Player) sender;
         
         if(!(player instanceof Player)){
+
+            plugin.getLogger().info("No, but srsly, you can't controll WinterSlash commands through the console");
             return true;
         }
 
-        plugin.getLogger().info("Hiownafwo");
-        plugin.getLogger().info(args[0]);
         // joining the arena
         if (args[0].equalsIgnoreCase("join")) {
             if(!sender.hasPermission("winterslash.join")){

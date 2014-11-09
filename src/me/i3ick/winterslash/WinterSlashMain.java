@@ -83,8 +83,10 @@ public class WinterSlashMain extends JavaPlugin {
 
         getLogger().info("WinterSlash: Worldname: " + playerWorld);
 
+        getLogger().info("registering");
         // register commands
         this.getCommand("ws").setExecutor(new MainCommand(this));
+        getLogger().info("rdwad");
 
         // register events
         this.getServer().getPluginManager().registerEvents(new WinterSlashEvents(this), this);
