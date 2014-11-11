@@ -1,26 +1,28 @@
 package me.i3ick.winterslash.commands;
 
-import java.io.File;
 
+import me.i3ick.winterslash.WinterSlashArenaCreator;
+import me.i3ick.winterslash.WinterSlashGameController;
 import me.i3ick.winterslash.WinterSlashMain;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 public class MainCommand implements CommandExecutor {
 
     WinterSlashMain plugin;
     Subcommands subcmnds;
+    WinterSlashGameController gameController;
+    WinterSlashArenaCreator creator;
 
-    public MainCommand(WinterSlashMain passedPlugin) {
-
-        subcmnds = new Subcommands(passedPlugin, null, null);
+    public MainCommand(WinterSlashMain passedPlugin, WinterSlashArenaCreator pass1, WinterSlashGameController pass2) {
+        subcmnds = new Subcommands(passedPlugin, pass2, pass1);
         this.plugin = passedPlugin;
+        this.creator = pass1;
+        this.gameController = pass2;
+        
     }
     
     public static boolean isInt(String number){
@@ -36,16 +38,15 @@ public class MainCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        
         Player player = (Player) sender;
-        plugin.getLogger().info("gfwagagwaga");
         
         if(!(player instanceof Player)){
-            plugin.getLogger().info("Ya fuck of ya stinky console m8 and come ingame like a man you fukin pussy!");
+            plugin.getLogger().info("Ya fuck of ya stinky console m8 and come ingame like a man ya fukin pussy!");
             plugin.getLogger().info("No, but srsly, you can't controll WinterSlash commands through the console");
             return true;
         }
-
-
+            
         // joining the arena
         if (args[0].equalsIgnoreCase("join")) {
             if(!sender.hasPermission("winterslash.join")){
@@ -56,7 +57,7 @@ public class MainCommand implements CommandExecutor {
                 player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws join <arenaname>");
                 return true;
             }
-            subcmnds.join(player, args[2]);
+            subcmnds.join(player, args[1]);
         }
         
         if (args[0].equalsIgnoreCase("list")) {
@@ -64,11 +65,12 @@ public class MainCommand implements CommandExecutor {
                 sender.sendMessage("No permission!");
                 return true;
             }
-            if (!(args.length >= 1)) {
-                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws list");
+            if ((args.length == 1)) {
+                subcmnds.list(player);
                 return true;
             }
-            subcmnds.list(player);
+            player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws list");
+            return true;
         }
         
         if(args[0].equalsIgnoreCase("leave")){
@@ -82,7 +84,7 @@ public class MainCommand implements CommandExecutor {
             return true;
         }
         
-        if(args[0].equalsIgnoreCase("pn")){
+/*        if(args[0].equalsIgnoreCase("pn")){
             if(!sender.hasPermission("winterslash.pn")){
                 sender.sendMessage("No permission!");
                 return true;
@@ -100,6 +102,7 @@ public class MainCommand implements CommandExecutor {
             }
             return true;
         }
+        */
         
         if(args[0].equalsIgnoreCase("remove")){
             if(!sender.hasPermission("winterslash.remove")){
@@ -164,11 +167,11 @@ public class MainCommand implements CommandExecutor {
             }
             
             if(args.length == 3){
-                if(!isInt(args[1])){
-                    player.sendMessage(ChatColor.RED + args[1] + " is not a number!");
+                if(!isInt(args[2])){
+                    player.sendMessage(ChatColor.RED + args[2] + " is not a number!");
                     return true;
                 }
-                int playerNumber = Integer.parseInt(args[1]);
+                int playerNumber = Integer.parseInt(args[2]);
                 if(playerNumber < 4){
                     player.sendMessage(ChatColor.YELLOW + " Minimum number of players is 4!");
                     return true;
@@ -199,7 +202,20 @@ public class MainCommand implements CommandExecutor {
             }
             return true;
         }
-        
+       
+        if(sender.hasPermission("winterslash.*")){
+            if(args.length == 1){
+                subcmnds.helpMod(player);
+            }
+        }
+        if(sender.hasPermission("winterslashplayers.*")){
+            if(args.length == 1){
+                subcmnds.helpPlayer(player);
+            }
+        }
+        else{
+            player.sendMessage("No permission!");
+        }
         
         
         

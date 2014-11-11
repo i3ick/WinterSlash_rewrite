@@ -31,57 +31,11 @@ public class WinterSlashArena {
     // Username suggests using arrays for teams ead of HashMaps!!!!
 
     private HashMap<String, Team> players = new HashMap<String, Team>();
-    private Location redspawn, greenspawn, joinLocation, endLocation;
-    private int maxPlayers;
+    private static Location redspawn;
+    private static Location greenspawn;
+    private static Location joinLocation;
     private int minPlayers;
 
-    
-    // Location Constructor
-
-    /**
-     * Constructor for gathering information necessary to create a new
-     * arena.
-     */
-    public WinterSlashArena(String arenaName, Location joinLocation,
-            Location redLocation, Location greenLocation,
-            int minPlayers) {
-
-        // Initializing it all:
-        this.name = arenaName;
-        this.joinLocation = joinLocation;
-        this.redspawn = redLocation;
-        this.greenspawn = greenLocation;
-        this.minPlayers = minPlayers;
-
-        // add this constructor to arena objects array
-        arenaObjects.add(this);
-
-    }
-
-    public void setMaxPlayers(int maxPlayers) {
-        this.maxPlayers = maxPlayers;
-        arenaObjects.add(this);
-    }
-    
-    public int getMaxPlayers(){
-        return this.maxPlayers;
-    }
-    
-    public void redSpawn(Location redLocation) {
-        this.redspawn = redLocation;
-        arenaObjects.add(this);
-    }
-    
-    public void greenSpawn(Location greenLocation) {
-        this.greenspawn = greenLocation;
-        arenaObjects.add(this);
-    }
-    
-    public void lobbySpawn(Location lobbyLocation) {
-        this.joinLocation = lobbyLocation;
-        arenaObjects.add(this);
-    }
-    
     
     // Sort teams
     public void addPlayers() {
@@ -113,13 +67,25 @@ public class WinterSlashArena {
         }
     }
 
-
+    public void minPlayers(int players){
+        this.minPlayers = players;
+    }
+    
+    public void setRed(Location redSpawn){
+        this.redspawn = redSpawn;
+    }
+    
+    public void setGreen(Location greenSpawn){
+        this.greenspawn = greenSpawn;
+    }
+    
+    public void setLobby(Location lobbyLocation){
+        this.joinLocation = lobbyLocation;
+    }
     
 
 
-
     // Frozen array
-
     public void setUnfrozen(String player) {
         frozen.add(player);
     }
@@ -202,22 +168,17 @@ public class WinterSlashArena {
         return players;
     }
 
-    public Location getLobbyLocation() {
-        return this.joinLocation;
+    public static Location getLobbyLocation() {
+        return joinLocation;
     }
 
-    public Location getRedSpawn() {
-        return this.redspawn;
+    public static Location getRedSpawn() {
+        return redspawn;
     }
 
-    public Location getGreenSpawn() {
-        return this.greenspawn;
+    public static Location getGreenSpawn() {
+        return greenspawn;
     }
-
-    public void setJoinLocation(Location joinLocation) {
-        this.joinLocation = joinLocation;
-    }
-
     public String getName() {
         return this.name;
     }
@@ -234,14 +195,12 @@ public class WinterSlashArena {
         return this.ingamePlayers;
     }
     
-
-
-    // Booleans
-
-    private boolean inGame = false;
+    
+    
     /**
      * Boolean to determine if an arena is ingame or not (auto false)
      */
+    private boolean inGame = false;
 
     private boolean isFrozen = false;
 
@@ -253,15 +212,21 @@ public class WinterSlashArena {
         this.inGame = inGame;
     }
 
-    public boolean isFull() { // Returns weather the arena is full or not
-        if (players.size() >= maxPlayers) {
+    /**
+     * returns whether game is full or not.
+     * @return
+     */
+    public boolean isFull() {
+        if (players.size() >= minPlayers) {
             return true;
         } else {
             return false;
         }
     }
 
-    // To send each player in the arena a message
+    /**
+     * Send a message to all ingame players
+     */
     public void sendMessage(String message) {
         for (String s : ingamePlayers) {
             Bukkit.getPlayer(s).sendMessage(message);

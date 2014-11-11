@@ -22,7 +22,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class WinterSlashMain extends JavaPlugin {
+    
 
+    
 
     @Override
     public void onDisable() {
@@ -77,72 +79,31 @@ public class WinterSlashMain extends JavaPlugin {
         }
         
         
-        String playerWorld = config.getString("Worlds" + ".World");
+      /*  String playerWorld = config.getString("Worlds" + ".World");
         WorldCreator c = new WorldCreator(playerWorld);
         c.createWorld();
 
         getLogger().info("WinterSlash: Worldname: " + playerWorld);
 
-        getLogger().info("registering");
+        */
+        
+        // load arena's      
+        WinterSlashGameController gameController = new WinterSlashGameController(this);
+        gameController.loadArenas();
+        
+        WinterSlashArenaCreator creator = new WinterSlashArenaCreator();
+        
+        
         // register commands
-        this.getCommand("ws").setExecutor(new MainCommand(this));
-        getLogger().info("rdwad");
+        this.getCommand("ws").setExecutor(new MainCommand(this, creator, gameController));
+        
 
         // register events
-        this.getServer().getPluginManager().registerEvents(new WinterSlashEvents(this, null), this);
-        this.getServer().getPluginManager().registerEvents(new WinterSlashSigns(this, null), this);
-        
-        // load arena's   
-        FileConfiguration arenaData = this.getArenaData();
-
-        if (arenaData.getConfigurationSection("arenas") == null) {
-            this.getLogger().info("There are no arenas.");
-            return;
-        }
-
-        for (String arenaName : arenaData.getConfigurationSection("arenas").getKeys(
-                false)) {
-
-            String name = arenaData.getString("Worlds." + "World");
-            World world = Bukkit.getServer().getWorld(name);
-
-                //Arena names are keys
-                double joinX = arenaData.getDouble("arenas." + arenaName + "." + "joinX");
-                double joinY = arenaData.getDouble("arenas." + arenaName + "." + "joinY");
-                double joinZ = arenaData.getDouble("arenas." + arenaName + "." + "joinZ");
-                float jYaw = (float) arenaData.getDouble("arenas." + arenaName + "." + "jYaw");
-                float jP = (float) arenaData.getDouble("arenas." + arenaName + "." + "jP");
-                Location joinLocation = new Location(world, joinX, joinY, joinZ, jYaw, jP);
-                
-                double greenX = arenaData.getDouble("arenas." + arenaName + "." + "greenX");
-                double greenY = arenaData.getDouble("arenas." + arenaName + "." + "greenY");
-                double greenZ = arenaData.getDouble("arenas." + arenaName + "." + "greenZ"); 
-                float gYaw = (float) arenaData.getDouble("arenas." + arenaName + "." + "gYaw");
-                float gP = (float) arenaData.getDouble("arenas." + arenaName + "." + "gP");
-                Location greenLocation = new Location(world, greenX, greenY, greenZ, gYaw, gP);
-                
-                double redX = arenaData.getDouble("arenas." + arenaName + "." + "redX");
-                double redY = arenaData.getDouble("arenas." + arenaName + "." + "redY");
-                double redZ = arenaData.getDouble("arenas." + arenaName + "." + "redZ");
-                float rYaw = (float) arenaData.getDouble("arenas." + arenaName + "." + "rYaw");
-                float rP = (float) arenaData.getDouble("arenas." + arenaName + "." + "rP");
-                Location redLocation = new Location(world, redX, redY, redZ, rYaw, rP);
-                 
-     
-            int minPlayers = arenaData.getInt("arenas." + arenaName + ".minPlayers");
-
-            WinterSlashArena arenaobject = new WinterSlashArena(arenaName,
-                    joinLocation, redLocation, greenLocation, minPlayers);
-           
-            int maxplayernumber = config.getInt("MaxPlayerNumber");
-          //  arena.setMaxPlayers(maxplayernumber);
-            
-        }
-        this.getLogger().info("WinterSlash: Arenas are now loaded!");
-
+        this.getServer().getPluginManager().registerEvents(new WinterSlashEvents(this, gameController), this);
+        this.getServer().getPluginManager().registerEvents(new WinterSlashSigns(this, gameController), this);
         
         
-        getLogger().info("Plugin Enabled!");
+        getLogger().info("WinterSlash Enabled!");
     }
 
 

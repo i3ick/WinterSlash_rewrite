@@ -18,11 +18,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 public class WinterSlashGameController {
     
     WinterSlashMain plugin;
-    WinterSlashArena arena;
     
-    public WinterSlashGameController( WinterSlashMain passPlugin, WinterSlashArena passPlugin2){
+    public WinterSlashGameController(WinterSlashMain passPlugin){
         this.plugin = passPlugin;
-        this.arena = passPlugin2;
     }
     
     public static WinterSlashArena getArena(String name){
@@ -35,7 +33,7 @@ public class WinterSlashGameController {
     }
 
 
-    public FileConfiguration arenaData = plugin.getArenaData();
+
 
     /**
      * Adds the player to the playerlist and teleports him to lobby.
@@ -102,6 +100,7 @@ public class WinterSlashGameController {
      */
 
     public void removePlayers(Player player, String arenaname) {
+       FileConfiguration arenaData = plugin.getArenaData();
         
         if (getArena(arenaname) != null) { 
        
@@ -170,6 +169,7 @@ public class WinterSlashGameController {
     
     
     public void endArena(String arenaName) {
+        FileConfiguration arenaData = plugin.getArenaData();
 
         if (getArena(arenaName) != null) {
 
@@ -210,12 +210,13 @@ public class WinterSlashGameController {
         }
     }
     
-    
     /**
      * Get all the spawn data from arenaData config file and puts them into an
      * object called "arenaobject"
      */
     public void loadArenas() {
+        
+        FileConfiguration arenaData = plugin.getArenaData();
         
         FileConfiguration config = plugin.getConfig();
 
@@ -255,11 +256,13 @@ public class WinterSlashGameController {
      
             int minPlayers = arenaData.getInt("arenas." + arenaName + ".minPlayers");
 
-            WinterSlashArena arenaobject = new WinterSlashArena(arenaName,
-                    joinLocation, redLocation, greenLocation, minPlayers);
+            WinterSlashArena arenaobject = new WinterSlashArena();
+            arenaobject.setGreen(greenLocation);
+            arenaobject.setRed(redLocation);
+            arenaobject.setLobby(joinLocation);
+            arenaobject.setName(arenaName);
+            arenaobject.minPlayers(minPlayers);
            
-            int maxplayernumber = config.getInt("MaxPlayerNumber");
-            arena.setMaxPlayers(maxplayernumber);
             
         }
         plugin.getLogger().info("WinterSlash: Arenas are now loaded!");
@@ -279,9 +282,12 @@ public class WinterSlashGameController {
     public void createArena(String arenaName, Location joinLocation,
             Location redLocation, Location greenLocation, int minPlayers) {
 
-        WinterSlashArena arenaobject = new WinterSlashArena(arenaName, joinLocation, //see if this is needed
-                redLocation, greenLocation, minPlayers);
-
+        WinterSlashArena arena = new WinterSlashArena();
+        arena.setRed(redLocation);
+        arena.setGreen(greenLocation);
+        arena.setLobby(joinLocation);
+        arena.setName(arenaName);
+        
         
         FileConfiguration arenaData = plugin.getArenaData();
 
@@ -307,7 +313,8 @@ public class WinterSlashGameController {
             arenaData.set(path + "gP", greenLocation.getPitch());
 
             arenaData.set(path + "minPlayers", minPlayers);
-
+            
+            
 
         plugin.saveArenaData();
     }

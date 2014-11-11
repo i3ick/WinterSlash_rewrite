@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import me.i3ick.winterslash.WinterSlashArena;
+import me.i3ick.winterslash.WinterSlashArenaCreator;
 import me.i3ick.winterslash.WinterSlashGameController;
 import me.i3ick.winterslash.WinterSlashMain;
 
@@ -21,17 +22,16 @@ public class Subcommands {
 
     WinterSlashMain plugin;
     WinterSlashGameController gameController;
-    WinterSlashArena arena;
+    WinterSlashArenaCreator creator;
 
-    public Subcommands(WinterSlashMain passPlugin, WinterSlashGameController passPlug2, WinterSlashArena passplug3) {
+    public Subcommands(WinterSlashMain passPlugin, WinterSlashGameController passPlug2, WinterSlashArenaCreator passplug3) {
         this.plugin = passPlugin;
-        this.arena = passplug3;
         this.gameController = passPlug2;
+        this.creator = passplug3;
         
     }
 
-    FileConfiguration config = plugin.getConfig();
-    FileConfiguration arenaData = plugin.getArenaData();
+
 
  
     
@@ -42,7 +42,10 @@ public class Subcommands {
      * @param arenaName
      */
     public void join(Player player, String arenaName) {
+        plugin.getLogger().info("1");
 
+        FileConfiguration config = plugin.getConfig();
+        FileConfiguration arenaData = plugin.getArenaData();
         
         WinterSlashArena arena = WinterSlashGameController.getArena(arenaName);
         int maxplayers = config.getInt("arenas." + arenaName + ".maxPlayers");
@@ -53,6 +56,7 @@ public class Subcommands {
             return;
         }
 
+        plugin.getLogger().info("2");
         if (arena == null) {
             player.sendMessage(ChatColor.RED + "This arena doesn't exist");
             return;
@@ -65,6 +69,7 @@ public class Subcommands {
             player.sendMessage(ChatColor.YELLOW + "You are already in this arena!");
             return;
         }
+        plugin.getLogger().info("3");
         if (arena.isInGame()) {
             player.sendMessage(ChatColor.YELLOW + "There is a game currently running in this arena!");
             return;
@@ -112,6 +117,7 @@ public class Subcommands {
      * @param player
      */
     public void list(Player player){
+        FileConfiguration arenaData = plugin.getArenaData();
         if(arenaData.getConfigurationSection("arenas") == null){
             player.sendMessage(ChatColor.RED + "There are no arenas.");
             return;
@@ -123,18 +129,7 @@ public class Subcommands {
 
     
     
-    
-    /**
-     * This method sets the maximum number of 
-     * players needed for a game to start
-     * @param maxplayernumber
-     */
-    public void maxPlayerNumber(int maxplayernumber, Player player) {
-        arena.setMaxPlayers(maxplayernumber);
-        config.set("MaxPlayerNumber", maxplayernumber);
-        config.options().copyDefaults(true);
-        player.sendMessage(ChatColor.YELLOW + "Player number set.");
-    }
+
     
     
     /**
@@ -158,9 +153,9 @@ public class Subcommands {
     public void create(String arenaName,Player player, int minimumPlayerNumber){
         
 
-                 Location redSpawn = arena.getRedSpawn();
-                 Location greenSpawn = arena.getGreenSpawn();
-                 Location lobbySpawn = arena.getLobbyLocation();
+                 Location redSpawn = creator.getRedSpawn();
+                 Location greenSpawn = creator.getGreenSpawn();
+                 Location lobbySpawn = creator.getLobbySpawn();
                  
                  String world = player.getLocation().getWorld().getName();
                  plugin.getArenaData().set("Worlds" + ".World", world);
@@ -190,7 +185,8 @@ public class Subcommands {
         float pitch = player.getLocation().getPitch();       
         
         Location redLocation = new Location(world, x, y, z, yaw, pitch);
-        arena.redSpawn(redLocation);
+        creator.redSpawn(redLocation);
+        player.sendMessage(ChatColor.YELLOW + "Red spawn selected.");
     }
     
     public void setGreen(Player player){
@@ -202,7 +198,8 @@ public class Subcommands {
         float pitch = player.getLocation().getPitch();       
         
         Location greenLocation = new Location(world, x, y, z, yaw, pitch);
-        arena.greenSpawn(greenLocation);
+        creator.greenSpawn(greenLocation);
+        player.sendMessage(ChatColor.YELLOW + "Green spawn selected.");
     }
     
     public void setLobby(Player player){
@@ -214,7 +211,8 @@ public class Subcommands {
         float pitch = player.getLocation().getPitch();       
         
         Location lobbyLocation = new Location(world, x, y, z, yaw, pitch);
-        arena.lobbySpawn(lobbyLocation);
+        creator.lobbySpawn(lobbyLocation);
+        player.sendMessage(ChatColor.YELLOW + "Lobby spawn selected.");
     }
     
     public void helpMod(Player player){
