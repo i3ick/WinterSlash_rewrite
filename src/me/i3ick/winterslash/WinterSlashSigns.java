@@ -36,6 +36,11 @@ public class WinterSlashSigns implements Listener{
             }
             String arenan = e.getLine(1).toString();
             ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
+            if(arenaData == null){
+                player.sendMessage(ChatColor.RED + "ArenaData config file is empty!");
+                e.setCancelled(true);
+                return;
+            }
             for (String arenas: arenaData.getKeys(false)) {
                 WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
                 if(arena.getName().equals(arenan)){
@@ -95,6 +100,12 @@ public class WinterSlashSigns implements Listener{
                   player.sendMessage("No permission");
                   return;
               }
+              
+              if(arenaData == null){
+                  player.sendMessage(ChatColor.RED + "ArenaData config file is empty!");
+                  e.setCancelled(true);
+                  return;}
+              
               if(arenaData.contains(e.getLine(1))){
               String arenaName = e.getLine(1).toString();
               for (String arenas: arenaData.getKeys(false)) {

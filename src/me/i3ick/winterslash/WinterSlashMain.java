@@ -110,7 +110,7 @@ public class WinterSlashMain extends JavaPlugin {
     public FileConfiguration getArenaData(){
         File f = new File(this.getDataFolder() + File.separator + "arenaData.yml");
         FileConfiguration arenaConfig = YamlConfiguration.loadConfiguration(f);
-        return arenaConfig;
+            return arenaConfig;
     }
     
 
