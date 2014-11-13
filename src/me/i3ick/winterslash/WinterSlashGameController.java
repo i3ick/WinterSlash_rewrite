@@ -1,6 +1,8 @@
 package me.i3ick.winterslash;
 
 import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -311,12 +313,17 @@ public class WinterSlashGameController {
             arenaData.set(path + "greenZ", greenLocation.getZ());
             arenaData.set(path + "gYaw", greenLocation.getYaw());
             arenaData.set(path + "gP", greenLocation.getPitch());
+            
+            arenaData.set("Worlds." + "World", greenLocation.getWorld().getName());
 
             arenaData.set(path + "minPlayers", minPlayers);
             
-            
-
-        plugin.saveArenaData();
+            File f = new File(plugin.getDataFolder() + File.separator + "arenaData.yml");
+            try {
+                arenaData.save(f);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
     
     

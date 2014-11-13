@@ -79,10 +79,10 @@ public class WinterSlashEvents implements Listener{
         }
         for (String arenas: arenaData.getKeys(false)) {
             WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
-            if(arena.getPlayers().contains(e.getPlayer().getUniqueId())){
+            if(arena.getPlayers().contains(e.getPlayer().getName())){
         
     
-         if (!(arena.getUnfrozen().contains(e.getPlayer().getUniqueId()))) {
+         if (!(arena.getUnfrozen().contains(e.getPlayer().getName()))) {
            e.getPlayer().teleport(e.getPlayer().getLocation());  
          }
          return;
