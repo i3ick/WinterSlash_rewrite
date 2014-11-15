@@ -26,6 +26,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.scheduler.BukkitScheduler;
 
 public class WinterSlashEvents implements Listener{
     
@@ -47,19 +48,12 @@ public class WinterSlashEvents implements Listener{
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             
-            FileConfiguration arenaData = plugin.getArenaData();
-            if(arenaData == null){
-                return;
-            }
-            ConfigurationSection sec = plugin.getArenaData().getConfigurationSection("arenas");
-            for (String arenas: sec.getKeys(false)) {
-                WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
-                if(arena.getPlayers().contains(player.getName())){
-                    player.getLocation();
-                    arenaData.set("DeathPosition." + player.getUniqueId() + ".X", player.getLocation().getBlockX());
-                    arenaData.set("DeathPosition." + player.getUniqueId() + ".Y", player.getLocation().getBlockY());
-                    arenaData.set("DeathPosition." + player.getUniqueId()+ ".Z", player.getLocation().getBlockZ());
-                    plugin.saveArenaData();
+            for (String arenas: gameController.arenaNameList) {
+                WinterSlashArena arena = gameController.getArena(arenas);
+                if(arena.getPlayers().contains(player.getName())){         
+                    Location DeathLoc = player.getLocation(); 
+                    arena.setDeathData(player, DeathLoc);
+                    
                  return;
             }
         }
@@ -72,18 +66,17 @@ public class WinterSlashEvents implements Listener{
     
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerMove(PlayerMoveEvent e) {
+
         
-        ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
-        if(arenaData == null){
-            return;
-        }
-        for (String arenas: arenaData.getKeys(false)) {
-            WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+        for (String arenas: gameController.arenaNameList){
+            WinterSlashArena arena = gameController.getArena(arenas);
+            if(arena == null){
+                return;
+            }
+            
             if(arena.getPlayers().contains(e.getPlayer().getName())){
-        
-    
-         if (!(arena.getUnfrozen().contains(e.getPlayer().getName()))) {
-           e.getPlayer().teleport(e.getPlayer().getLocation());  
+                if (!(arena.getUnfrozen().contains(e.getPlayer().getName()))) {
+                    e.getPlayer().teleport(e.getPlayer().getLocation());  
          }
          return;
         }
@@ -94,7 +87,7 @@ public class WinterSlashEvents implements Listener{
     
     //prevent damage from frozen players / prevent friendly fire / prevent killing frozen players
     @EventHandler
-    public void onPlayerDamage_frozen_damage(EntityDamageByEntityEvent event) {
+    public void onPlayerDamageFrozenDamage(EntityDamageByEntityEvent event) {
         Entity victim_entity = event.getEntity();
         Entity damager_entity = event.getDamager();
         if (victim_entity instanceof Player) {
@@ -102,9 +95,8 @@ public class WinterSlashEvents implements Listener{
                 Player victim = (Player) victim_entity;
                 Player damager = (Player) damager_entity;
                 
-                ConfigurationSection sec = plugin.getArenaData().getConfigurationSection("arenas");
-                for (String arenas: sec.getKeys(false)) {
-                    WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+                for (String arenas: gameController.arenaNameList) {
+                    WinterSlashArena arena = gameController.getArena(arenas);
                     if(arena.getPlayers().contains(victim.getName())){
                     
                     
@@ -172,12 +164,8 @@ public class WinterSlashEvents implements Listener{
 
         // GAME WINNING LOGIC  
           
-          ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
-          if(arenaData == null){
-              return;
-          }
-          for (String arenas: arenaData.getKeys(false)) {
-              WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+          for (String arenas: gameController.arenaNameList) {
+              WinterSlashArena arena = gameController.getArena(arenas);
               if(arena.getPlayers().contains(p.getName())){
                   arena.setFrozen(p.getName());
               
@@ -186,14 +174,18 @@ public class WinterSlashEvents implements Listener{
                   if (arena.getGreenFrozen().size() == arena.getGreenTeam().size()){
                       //  end the game...
                       Bukkit.broadcastMessage(ChatColor.GREEN + "The GREEN team has won the game!");
+                      gameController.addRestore(p.getName());
                       gameController.endArena(arena.getName());
+                      gameController.removePlayers(p, arenas);
                       return;
                   }
                   // End game if red wins
                   if (arena.getRedFrozen().size() == arena.getRedTeam().size()) {
                       //  end the game...
                       Bukkit.broadcastMessage(ChatColor.GREEN + "The RED team has won the game!");
+                      gameController.addRestore(p.getName());
                       gameController.endArena(arena.getName());
+                      gameController.removePlayers(p, arenas);
                       return;
                   } 
                   
@@ -234,10 +226,13 @@ public class WinterSlashEvents implements Listener{
        */
       @EventHandler
       public void onDisconnect(PlayerQuitEvent e) {
+          plugin.getLogger().info("1");
           Player player = e.getPlayer();  
-          for(String arenas: plugin.getArenaData().getConfigurationSection("arenas").getKeys(false)){
-              WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
-              if(arena.getGamers().contains(player)){
+          for(String arenas: gameController.arenaNameList){
+              plugin.getLogger().info("2");
+              WinterSlashArena arena = gameController.getArena(arenas);
+              if(arena.getPlayers().contains(player.getName())){
+                  plugin.getLogger().info("3");
                   gameController.removePlayers(player, arena.getName());
               }
           }
@@ -251,12 +246,11 @@ public class WinterSlashEvents implements Listener{
        */
       @EventHandler(priority = EventPriority.HIGHEST)
       public void onServerCommand(PlayerCommandPreprocessEvent e) {
-          ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
-           if(arenaData == null){
-              return;
-          }
-           for (String arenas: arenaData.getKeys(false)) {
-              WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+           for (String arenas: gameController.arenaNameList) {
+              WinterSlashArena arena = gameController.getArena(arenas);
+              if(arena == null){
+                  return;
+              }
               if(arena.getPlayers().contains(e.getPlayer().getName())){
               if (e.getMessage().equals("/ws leave")) {
                   return;
@@ -284,20 +278,26 @@ public class WinterSlashEvents implements Listener{
       @EventHandler (priority = EventPriority.HIGHEST)
       public void onPlayerRespawn(PlayerRespawnEvent e){
           Player p = e.getPlayer();
-          ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
-           if(arenaData == null){
-              return;
+          
+          for (String arenas: gameController.arenaNameList) {
+              WinterSlashArena arena = gameController.getArena(arenas);
+          
+          if(gameController.restorePlayers.contains(p.getName())){
+                  plugin.awardMoney(p);
+                  gameController.removePlayers(p, arenas);
+                  this.runDelayTeleport(p);
+          }
           }
            
-           for (String arenas: arenaData.getKeys(false)) {
-               WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+           for (String arenas: gameController.arenaNameList) {
+               WinterSlashArena arena = gameController.getArena(arenas);
            if(!(arena.getPlayers().contains(p.getName()))){
                return;
            }
            }
            
-           for (String arenas: arenaData.getKeys(false)) {
-              WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+           for (String arenas: gameController.arenaNameList) {
+              WinterSlashArena arena = gameController.getArena(arenas);
               if(arena.getPlayers().contains(p.getName())){
                   arena.setUnfrozen(p.getName());
                   
@@ -314,25 +314,13 @@ public class WinterSlashEvents implements Listener{
                   //set armor
                 //   classes.setarmor();
                   
-                  
+                  if(gameController.restorePlayers.contains(p.getName())){
+                      e.setRespawnLocation(arena.getInitData(p));
+                      return;
+              }
                   
                   // tp to death position
-                  int lastposX = arenaData.getInt("DeathPosition." + p.getName() + ".X");
-                  int lastposY = arenaData.getInt("DeathPosition." + p.getName() + ".Y");
-                  int lastposZ = arenaData.getInt("DeathPosition." + p.getName() + ".Z");
-                  String playerWorld = plugin.getConfig().getString("Worlds" + ".World");
-                  String world = p.getLocation().getWorld().getName();
-
-                  if(world != null)
-                  {
-                      Location lastpos = new Location((Bukkit.getWorld(world)), lastposX, lastposY, lastposZ);
-                      e.setRespawnLocation(lastpos);
-                  }
-                  else
-                  {
-                      Bukkit.getServer().createWorld(new WorldCreator(playerWorld).environment(World.Environment.NORMAL));
-                      plugin.getLogger().warning("The '" + "redspawn" + ".World" + "' world from config.yml does not exist or is not loaded !");
-                  }   
+                      e.setRespawnLocation(arena.getDeathData(p));
               }
           }
 
@@ -351,24 +339,13 @@ public class WinterSlashEvents implements Listener{
                  // classes.setarmor();
                   
                   
-                  
+                  if(gameController.restorePlayers.contains(p.getName())){
+                      e.setRespawnLocation(arena.getInitData(p));
+                      return;
+              }
                   // tp to death position
-                  int lastposX = arenaData.getInt("DeathPosition." + p.getName() + ".X");
-                  int lastposY = arenaData.getInt("DeathPosition." + p.getName() + ".Y");
-                  int lastposZ = arenaData.getInt("DeathPosition." + p.getName() + ".Z");
-                  String playerWorld = arenaData.getString("Worlds" + ".World");
-                  String world = p.getLocation().getWorld().getName();
+                      e.setRespawnLocation(arena.getDeathData(p));
 
-                  if(world != null)
-                  {
-                      Location lastpos = new Location(Bukkit.getWorld(world), lastposX, lastposY, lastposZ);
-                      p.teleport(lastpos);
-                  }
-                  else
-                  {
-                      Bukkit.getServer().createWorld(new WorldCreator(playerWorld).environment(World.Environment.NORMAL));
-                      plugin.getLogger().warning("The '" + "redspawn" + ".World" + "' world from config.yml does not exist or is not loaded !");
-                  }   
               }
               }
                    return;
@@ -376,7 +353,18 @@ public class WinterSlashEvents implements Listener{
               }
            }
       
-      
+      public void runDelayTeleport(final Player player) {
+          BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+          scheduler.scheduleSyncDelayedTask(plugin, new Runnable() {
+              @Override
+              public void run() {
+                  for (String arenas: gameController.arenaNameList) {
+                      WinterSlashArena arena = gameController.getArena(arenas);
+                      player.teleport(arena.getDeathData(player));
+                  }
+              }
+          }, 20L);
+          }
     
     
     

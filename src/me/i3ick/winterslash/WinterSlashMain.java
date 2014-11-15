@@ -2,27 +2,24 @@ package me.i3ick.winterslash;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import me.i3ick.winterslash.commands.MainCommand;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.WorldCreator;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class WinterSlashMain extends JavaPlugin {
     
+    public static Economy econ = null;
+    private static final Logger log = Logger.getLogger("Minecraft");
 
     
 
@@ -68,6 +65,11 @@ public class WinterSlashMain extends JavaPlugin {
         }
         
         
+        if (!setupEconomy() ) {
+            log.severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         // load world
         File configFile = new File(getDataFolder(), "config.yml");
@@ -106,6 +108,18 @@ public class WinterSlashMain extends JavaPlugin {
         getLogger().info("WinterSlash Enabled!");
     }
 
+    
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
+    }
 
     public FileConfiguration getArenaData(){
         File f = new File(this.getDataFolder() + File.separator + "arenaData.yml");
@@ -113,6 +127,17 @@ public class WinterSlashMain extends JavaPlugin {
             return arenaConfig;
     }
     
+    
+    public void awardMoney(Player player){
+        
+        double a = 3.32;           
+        EconomyResponse r = econ.depositPlayer(player, a);
+        if(r.transactionSuccess()) {
+            player.sendMessage(String.format(ChatColor.GREEN + "You were awarded %s for winning the round and now you have a total of %s", econ.format(r.amount), econ.format(r.balance)));
+        } else {
+            player.sendMessage(String.format("An error occured: %s", r.errorMessage));
+        }
+    }
 
     public static boolean isInventoryEmpty(Player p) {
         for (ItemStack item : p.getInventory().getContents()) {

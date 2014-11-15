@@ -73,6 +73,17 @@ public class MainCommand implements CommandExecutor {
             return true;
         }
         
+        if(args[0].equalsIgnoreCase("fs")){
+            if(!sender.hasPermission("winterslash.forcestart")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            if(args.length == 2){
+                subcmnds.forceStart(player, args[1]);
+            }
+            
+        }
+        
         if(args[0].equalsIgnoreCase("leave")){
             if(!sender.hasPermission("winterslash.leave")){
                 sender.sendMessage("No permission!");
@@ -206,11 +217,13 @@ public class MainCommand implements CommandExecutor {
         if(sender.hasPermission("winterslash.*")){
             if(args.length == 1){
                 subcmnds.helpMod(player);
+                return true;
             }
         }
         if(sender.hasPermission("winterslashplayers.*")){
             if(args.length == 1){
                 subcmnds.helpPlayer(player);
+                return true;
             }
         }
         else{

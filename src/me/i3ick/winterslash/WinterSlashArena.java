@@ -2,6 +2,7 @@ package me.i3ick.winterslash;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import me.i3ick.winterslash.WinterSlashTeams.Team;
 
@@ -16,6 +17,10 @@ public class WinterSlashArena {
 
     
     public static ArrayList<WinterSlashArena> arenaObjects = new ArrayList<WinterSlashArena>();
+    
+
+    Map<Player, Location> PlayerDeathData = new HashMap<Player, Location>();
+    Map<Player, Location> PlayerInitData = new HashMap<Player, Location>();
 
     public ArrayList<String> red = new ArrayList<String>();
     public ArrayList<String> green = new ArrayList<String>();
@@ -36,6 +41,23 @@ public class WinterSlashArena {
     private static Location joinLocation;
     private int minPlayers;
 
+    
+    public void setInitData(Player player, Location loc){
+        PlayerInitData.put(player, loc);
+    }
+    
+    public Location getInitData(Player player){
+           return PlayerInitData.get(player);  
+    }
+    
+    
+    public void setDeathData(Player player, Location loc){
+        PlayerDeathData.put(player, loc);
+    }
+    
+    public Location getDeathData(Player player){
+           return PlayerDeathData.get(player);  
+    }
     
     // Sort teams
     public void addPlayers() {
@@ -168,15 +190,15 @@ public class WinterSlashArena {
         return players;
     }
 
-    public static Location getLobbyLocation() {
+    public Location getLobbyLocation() {
         return joinLocation;
     }
 
-    public static Location getRedSpawn() {
+    public Location getRedSpawn() {
         return redspawn;
     }
 
-    public static Location getGreenSpawn() {
+    public Location getGreenSpawn() {
         return greenspawn;
     }
     public String getName() {

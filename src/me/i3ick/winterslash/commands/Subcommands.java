@@ -1,17 +1,20 @@
 package me.i3ick.winterslash.commands;
 
-import java.awt.Color;
 
+import java.io.File;
+import java.io.IOException;
+
+import net.milkbowl.vault.economy.EconomyResponse;
+
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
-import org.bukkit.WorldCreator;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import me.i3ick.winterslash.WinterSlashArena;
 import me.i3ick.winterslash.WinterSlashArenaCreator;
@@ -42,12 +45,11 @@ public class Subcommands {
      * @param arenaName
      */
     public void join(Player player, String arenaName) {
-        plugin.getLogger().info("1");
 
         FileConfiguration config = plugin.getConfig();
         FileConfiguration arenaData = plugin.getArenaData();
         
-        WinterSlashArena arena = WinterSlashGameController.getArena(arenaName);
+        WinterSlashArena arena = gameController.getArena(arenaName);
         int maxplayers = config.getInt("arenas." + arenaName + ".maxPlayers");
         
 
@@ -56,7 +58,6 @@ public class Subcommands {
             return;
         }
 
-        plugin.getLogger().info("2");
         if (arena == null) {
             player.sendMessage(ChatColor.RED + "This arena doesn't exist");
             return;
@@ -69,7 +70,6 @@ public class Subcommands {
             player.sendMessage(ChatColor.YELLOW + "You are already in this arena!");
             return;
         }
-        plugin.getLogger().info("3");
         if (arena.isInGame()) {
             player.sendMessage(ChatColor.YELLOW + "There is a game currently running in this arena!");
             return;
@@ -103,12 +103,25 @@ public class Subcommands {
      */
     
     public void leave(Player player){
-        for(String arenas: plugin.getArenaData().getConfigurationSection("arenas").getKeys(false)){
-            WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
-            if(arena.getGamers().contains(player)){
+        
+        for (String arenas: gameController.arenaNameList) {
+            WinterSlashArena arena = gameController.getArena(arenas);
+            if(arena.getGamers().contains(player.getName())){
                 gameController.removePlayers(player, arena.getName());
+                player.sendMessage(ChatColor.YELLOW + "You have left the arena!");
             }
         }
+    }
+    
+    
+    /**
+     * This method force starts the specified arena
+     * @param player
+     * @param arenaName
+     */
+    public void forceStart(Player player, String arenaName){
+        player.sendMessage(ChatColor.GREEN + "Arena " + arenaName + " has been force started!");
+        gameController.startArena(arenaName);
     }
     
     
@@ -117,14 +130,16 @@ public class Subcommands {
      * @param player
      */
     public void list(Player player){
-        FileConfiguration arenaData = plugin.getArenaData();
-        if(arenaData.getConfigurationSection("arenas") == null){
+        
+        if(gameController.arenaNameList.isEmpty()){
             player.sendMessage(ChatColor.RED + "There are no arenas.");
             return;
+        }else{
+            player.sendMessage(ChatColor.GRAY + "The following arenas are available:");
+            for(String arena : gameController.arenaNameList){
+            player.sendMessage(arena);
         }
-        ConfigurationSection sec = arenaData.getConfigurationSection("arenas");
-        String arenas = sec.getValues(false).keySet().toString();
-        player.sendMessage(Color.blue + arenas);
+        }
     }
 
     
@@ -138,13 +153,20 @@ public class Subcommands {
      */
     
     public void removeArena(String Arenaname, Player sender){
-        for(String arenas: plugin.getArenaData().getConfigurationSection("arenas").getKeys(false)){
+        FileConfiguration arenaData = plugin.getArenaData();
+        for(String arenas: arenaData.getConfigurationSection("arenas").getKeys(false)){ 
             if(arenas.equals(Arenaname)){
-                plugin.getArenaData().getConfigurationSection("arenas").set(Arenaname, null);
-                sender.sendMessage(Color.yellow + "Arena " + Arenaname + " sucessfully deleted!");
+                arenaData.getConfigurationSection("arenas").set(Arenaname, null); 
+                File f = new File(plugin.getDataFolder() + File.separator + "arenaData.yml");
+                try {
+                   arenaData.save(f);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                sender.sendMessage(ChatColor.YELLOW + "Arena " + Arenaname + " sucessfully deleted!");
             }
             else{
-                sender.sendMessage(Color.red + "No such arena.");
+                sender.sendMessage(ChatColor.RED + "No such arena.");
             }
         }
         

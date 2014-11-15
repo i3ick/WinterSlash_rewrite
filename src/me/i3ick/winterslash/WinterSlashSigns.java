@@ -1,5 +1,9 @@
 package me.i3ick.winterslash;
 
+import java.util.ArrayList;
+
+import me.i3ick.winterslash.commands.Subcommands;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Sign;
@@ -35,14 +39,9 @@ public class WinterSlashSigns implements Listener{
                 return;
             }
             String arenan = e.getLine(1).toString();
-            ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
-            if(arenaData == null){
-                player.sendMessage(ChatColor.RED + "ArenaData config file is empty!");
-                e.setCancelled(true);
-                return;
-            }
-            for (String arenas: arenaData.getKeys(false)) {
-                WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+
+            for (String arenas: gameController.arenaNameList) {
+                WinterSlashArena arena = gameController.getArena(arenas);
                 if(arena.getName().equals(arenan)){
                     e.setLine(0, ChatColor.YELLOW + ChatColor.BOLD.toString() + "Punch 2");
                     e.setLine(1, ChatColor.YELLOW + ChatColor.BOLD.toString() + "Force Start");
@@ -68,9 +67,8 @@ public class WinterSlashSigns implements Listener{
               if (e.getClickedBlock().getType() == Material.SIGN_POST|| e.getClickedBlock().getType() == Material.WALL_SIGN) {
                   Sign sign = (Sign) e.getClickedBlock().getState();
                   if(sign.getLine(0).equalsIgnoreCase(ChatColor.YELLOW + ChatColor.BOLD.toString() + "Punch 2")){
-                   ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
-                   for (String arenas: arenaData.getKeys(false)) {
-                      WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+                   for (String arenas: gameController.arenaNameList) {
+                      WinterSlashArena arena = gameController.getArena(arenas);
                       if(arena.getPlayers().contains(e.getPlayer().getName())){
                   
                   int playersLeft = plugin.getConfig().getInt(".MinPlayerNumber") - arena.getSign().size();
@@ -93,7 +91,6 @@ public class WinterSlashSigns implements Listener{
       @EventHandler
       public void onSignCreation2(SignChangeEvent e) {
           Player player = (Player) e.getPlayer();
-          ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
 
           if (e.getLine(0).equals("/joinsign")) {
               if (!player.hasPermission("winterslash.signplace")) {
@@ -101,19 +98,15 @@ public class WinterSlashSigns implements Listener{
                   return;
               }
               
-              if(arenaData == null){
-                  player.sendMessage(ChatColor.RED + "ArenaData config file is empty!");
-                  e.setCancelled(true);
-                  return;}
               
-              if(arenaData.contains(e.getLine(1))){
+              if(gameController.arenaNameList.contains(e.getLine(1))){
               String arenaName = e.getLine(1).toString();
-              for (String arenas: arenaData.getKeys(false)) {
-                  WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
+              for (String arenas: gameController.arenaNameList) {
+                  WinterSlashArena arena = gameController.getArena(arenas);
                   if(arena.getName().equals(arenaName)){
-                      e.setLine(0, ChatColor.BLUE + ChatColor.BOLD.toString() + "Winter Slash");
+                      e.setLine(0, ChatColor.BLUE + ChatColor.BOLD.toString() + "WinterSlash");
                       e.setLine(1, ChatColor.BLUE + ChatColor.BOLD.toString() + "join arena");
-                      e.setLine(2, ChatColor.BLUE + arenaName);
+                      e.setLine(2, arenaName);
                       return;
                   }
           }
@@ -127,6 +120,7 @@ public class WinterSlashSigns implements Listener{
       @EventHandler
       public void onJoinSign(PlayerInteractEvent e) {
           Player player = (Player) e.getPlayer();
+          Subcommands subcmnds = new Subcommands(plugin, gameController, null);
           
           if (!player.hasPermission("winterslash.signplace")) {
               player.sendMessage("No permission");
@@ -135,22 +129,9 @@ public class WinterSlashSigns implements Listener{
           if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
               if (e.getClickedBlock().getType() == Material.SIGN_POST|| e.getClickedBlock().getType() == Material.WALL_SIGN) {
                   Sign sign = (Sign) e.getClickedBlock().getState();
-                  if(sign.getLine(0).equalsIgnoreCase(ChatColor.YELLOW + ChatColor.BOLD.toString() + "Punch 2")){
-                   ConfigurationSection arenaData = plugin.getArenaData().getConfigurationSection("arenas");
-                   for (String arenas: arenaData.getKeys(false)) {
-                      WinterSlashArena arena = WinterSlashGameController.getArena(arenas);
-                      if(arena.getPlayers().contains(e.getPlayer().getName())){
-                  
-                  int playersLeft = plugin.getConfig().getInt(".MinPlayerNumber") - arena.getSign().size();
-                  if(playersLeft < 1){
-                      String arenan = sign.getLine(2).toString();
-                      gameController.startArena(arenan);
-                  }else{
-                  arena.sendMessage(ChatColor.DARK_PURPLE.toString() + playersLeft + " more players needed to force start.");
-                  }return;}
-                      else{
-                      }
-                      }
+                  if(sign.getLine(0).equalsIgnoreCase(ChatColor.BLUE + ChatColor.BOLD.toString() + "WinterSlash")){            
+                      subcmnds.join(player, sign.getLine(2).toString());
+                      player.sendMessage(sign.getLine(2));
               }
               }
           }
@@ -192,6 +173,7 @@ public class WinterSlashSigns implements Listener{
                   revivorUpgrade.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 6);
                   player.getInventory().setItem(newItemSlot, revivorUpgrade);
                   player.getInventory().removeItem(revivor);
+                  player.updateInventory();
                   }
               }
           }

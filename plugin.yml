@@ -20,6 +20,7 @@ permissions:
       winterslash.signplace: true
       winterslash.create: true
       winterslash.setlobby: true
+      winterslash.forcestart: true
   winterslashplayers.*: 
     description: "Give normal players permission to play Freezetag!"
     children: 
