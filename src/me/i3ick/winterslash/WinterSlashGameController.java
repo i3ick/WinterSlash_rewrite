@@ -35,8 +35,7 @@ public class WinterSlashGameController {
     }
     */
    public WinterSlashArena getArena(String name){
-       WinterSlashArena a = this.arenaObjects.get(arenaName);
-       plugin.getLogger().info(a.toString());
+       WinterSlashArena a = this.arenaObjects.get(name);
        return a;
        
    }
@@ -240,7 +239,6 @@ public class WinterSlashGameController {
             plugin.getLogger().info("There are no arenas.");
             return;
         }
-
         
         for (String arenaName : arenaData.getConfigurationSection("arenas").getKeys(
                 false)) {
@@ -330,9 +328,17 @@ public class WinterSlashGameController {
             arenaData.set(path + "gP", greenLocation.getPitch());
             
             arenaData.set("Worlds." + "World", greenLocation.getWorld().getName());
-            arenaData.set(path + "minPlayers", minPlayers);            
+            arenaData.set(path + "minPlayers", minPlayers);      
+            
+            WinterSlashArena arenaobject = new WinterSlashArena();
+            arenaobject.setGreen(greenLocation);
+            arenaobject.setRed(redLocation);
+            arenaobject.setLobby(joinLocation);
+            arenaobject.setName(arenaName);
+            arenaobject.minPlayers(minPlayers);
+            
             this.addName(arenaName);
-            this.arenaName.add(arena);
+            this.arenaObjects.put(arenaName, arenaobject);
 
             
             File f = new File(plugin.getDataFolder() + File.separator + "arenaData.yml");
