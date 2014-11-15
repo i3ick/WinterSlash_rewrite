@@ -47,7 +47,6 @@ public class Subcommands {
     public void join(Player player, String arenaName) {
 
         FileConfiguration config = plugin.getConfig();
-        FileConfiguration arenaData = plugin.getArenaData();
         
         WinterSlashArena arena = gameController.getArena(arenaName);
         int maxplayers = config.getInt("arenas." + arenaName + ".maxPlayers");
@@ -77,17 +76,6 @@ public class Subcommands {
 
         else {
             player.sendMessage(ChatColor.YELLOW + "You have been put on the games waiting list.");
-
-            arenaData.set("PlayerData." + player.getName() + ".X", player.getLocation().getBlockX());
-            arenaData.set("PlayerData." + player.getName() + ".Y", player.getLocation().getBlockY());
-            arenaData.set("PlayerData." + player.getName() + ".Z", player.getLocation().getBlockZ());
-            arenaData.set("PlayerData." + player.getName() + ".Yaw", player.getLocation().getYaw());
-            arenaData.set("PlayerData." + player.getName() + ".Pitch", player.getLocation().getPitch());
-            arenaData.set("PlayerData." + player.getName() + ".World", Bukkit.getName());
-            arenaData.set("PlayerData." + player.getName() + ".World", Bukkit.getName());
-            arenaData.options().copyDefaults(true);
-            
-            
             gameController.addPlayers(player, arenaName);
 
             // This starts the game

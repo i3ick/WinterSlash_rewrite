@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -22,7 +24,7 @@ public class WinterSlashGameController {
         WinterSlashGameController.plugin = passPlugin;
     }
     
-    public WinterSlashArena getArena(String name){
+   /* public WinterSlashArena getArena(String name){
        WinterSlashArena obj = null;
         for(WinterSlashArena a: this.arenaName){
             if(a.getName().equals(name)){
@@ -31,11 +33,19 @@ public class WinterSlashGameController {
         }
         return obj;
     }
+    */
+   public WinterSlashArena getArena(String name){
+       WinterSlashArena a = this.arenaObjects.get(arenaName);
+       plugin.getLogger().info(a.toString());
+       return a;
+       
+   }
     
     
     
     public ArrayList<String> arenaNameList = new ArrayList<String>();
     private final List<WinterSlashArena> arenaName = new ArrayList<WinterSlashArena>();
+    Map<String, WinterSlashArena> arenaObjects = new HashMap<String, WinterSlashArena>();
     public ArrayList<String> restorePlayers = new ArrayList<String>();
     
 
@@ -231,6 +241,7 @@ public class WinterSlashGameController {
             return;
         }
 
+        
         for (String arenaName : arenaData.getConfigurationSection("arenas").getKeys(
                 false)) {
 
@@ -261,7 +272,6 @@ public class WinterSlashGameController {
                  
      
             int minPlayers = arenaData.getInt("arenas." + arenaName + ".minPlayers");
-
             WinterSlashArena arenaobject = new WinterSlashArena();
             arenaobject.setGreen(greenLocation);
             arenaobject.setRed(redLocation);
@@ -269,7 +279,7 @@ public class WinterSlashGameController {
             arenaobject.setName(arenaName);
             arenaobject.minPlayers(minPlayers);
             this.addName(arenaName);
-            this.arenaName.add(arenaobject);
+            this.arenaObjects.put(arenaName, arenaobject);
             
         }
         plugin.getLogger().info("WinterSlash: Arenas are now loaded!");
