@@ -14,6 +14,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.scheduler.BukkitScheduler;
 
 public class WinterSlashGameController {
@@ -24,28 +25,23 @@ public class WinterSlashGameController {
         WinterSlashGameController.plugin = passPlugin;
     }
     
-   /* public WinterSlashArena getArena(String name){
+  public WinterSlashArena getArena(String name){
        WinterSlashArena obj = null;
-        for(WinterSlashArena a: this.arenaName){
-            if(a.getName().equals(name)){
-                obj = a;
-            }
-        }
+       if(this.arenaObjects.containsKey(name)){
+           obj = this.arenaObjects.get(name);
+           String a = obj.getGreenSpawn().toString();
+           
+       }
         return obj;
     }
-    */
-   public WinterSlashArena getArena(String name){
-       WinterSlashArena a = this.arenaObjects.get(name);
-       return a;
-       
-   }
-    
-    
-    
+  
+  
     public ArrayList<String> arenaNameList = new ArrayList<String>();
-    private final List<WinterSlashArena> arenaName = new ArrayList<WinterSlashArena>();
-    Map<String, WinterSlashArena> arenaObjects = new HashMap<String, WinterSlashArena>();
+    public ArrayList<String> playersInGame = new ArrayList<String>();
+    public HashMap<String, WinterSlashArena> arenaObjects = new HashMap<String, WinterSlashArena>();
     public ArrayList<String> restorePlayers = new ArrayList<String>();
+    public HashMap<String, Double> awardAmount = new HashMap<String, Double>();
+    
     
 
     
@@ -85,10 +81,13 @@ public class WinterSlashGameController {
             arena.setGamers(player.getName());
             Location initLoc = player.getLocation();
             arena.setInitData(player, initLoc);
-            
+            playersInGame.add(player.getName());
             Bukkit.getPlayer(player.getUniqueId()).teleport(arena.getLobbyLocation());
             arena.setPlayers(player);
             arena.setUnfrozen(player.getName());
+            plugin.saveInventoryToFile(player.getInventory(), plugin.getDataFolder(), player.getName());
+            player.getInventory().clear();
+            arena.getAlive().add(player.getName());
          
 
             int playersLeft = arena.getMinPlayers() - arena.getPlayers().size();
@@ -140,6 +139,7 @@ public class WinterSlashGameController {
             WinterSlashArena arena = this.getArena(arenaname);
         if (arena.getPlayers().contains(player.getName())) {
         arena.removeGamers(player.getName());
+        arena.getAlive().remove(player.getName());
         arena.clearSign(player.getName());
         player.getInventory().clear();
         arena.removePlayers();
@@ -147,6 +147,7 @@ public class WinterSlashGameController {
         Bukkit.getPlayer(player.getUniqueId()).teleport(arena.getInitData(player));
         arena.removePlayers();
         arena.sendMessage(ChatColor.BLUE + "Player " + player.getName() + " disconnected!");
+        plugin.getInventoryFromFile(new File(plugin.getDataFolder(), player.getName() + ".invsave"), player);
         }
         
         else {   player.sendMessage(ChatColor.YELLOW + "You are not ingame!");
@@ -193,7 +194,6 @@ public class WinterSlashGameController {
     
     
     public void endArena(String arenaName) {
-        FileConfiguration arenaData = plugin.getArenaData();
 
         if (getArena(arenaName) != null) {
 
@@ -204,11 +204,15 @@ public class WinterSlashGameController {
             if (arena.getGamers().size() == 0) {
                 return;
             }
-
-            for (String p : arena.getUnfrozen()) {
+            if(arena.getUnfrozen().isEmpty()){
+                return;
+            }
+            for (String p: arena.getAlive()) {
+                if(p!= null){
                 Player player = Bukkit.getPlayer(p);
 
                 // Remove from game array
+                arena.getAlive().remove(player.getName());
                 arena.removeGamers(player.getName());
                 arena.getSign().remove(player.getName());
                 arena.clearSign(player.getName());
@@ -218,7 +222,10 @@ public class WinterSlashGameController {
                 player.teleport(arena.getInitData(player));
                 player.getInventory().clear();
                 arena.getPlayers().remove(player.getName());
+                
+                plugin.getInventoryFromFile(new File(plugin.getDataFolder(), player.getName() + ".invsave"), player);
 
+                }
             }
         } else {
             return;
@@ -233,13 +240,11 @@ public class WinterSlashGameController {
         
         FileConfiguration arenaData = plugin.getArenaData();
         
-        FileConfiguration config = plugin.getConfig();
 
         if (arenaData.getConfigurationSection("arenas") == null) {
             plugin.getLogger().info("There are no arenas.");
             return;
         }
-        
         for (String arenaName : arenaData.getConfigurationSection("arenas").getKeys(
                 false)) {
 
@@ -267,22 +272,30 @@ public class WinterSlashGameController {
                 float rYaw = (float) arenaData.getDouble("arenas." + arenaName + "." + "rYaw");
                 float rP = (float) arenaData.getDouble("arenas." + arenaName + "." + "rP");
                 Location redLocation = new Location(world, redX, redY, redZ, rYaw, rP);
-                 
      
+                 WinterSlashArena arenaobject = new WinterSlashArena();
             int minPlayers = arenaData.getInt("arenas." + arenaName + ".minPlayers");
-            WinterSlashArena arenaobject = new WinterSlashArena();
             arenaobject.setGreen(greenLocation);
             arenaobject.setRed(redLocation);
             arenaobject.setLobby(joinLocation);
             arenaobject.setName(arenaName);
             arenaobject.minPlayers(minPlayers);
+            addToHash(arenaName, arenaobject);    
             this.addName(arenaName);
-            this.arenaObjects.put(arenaName, arenaobject);
-            
+            Double number = (Double) plugin.getConfig().get("Settings." + "Award");
+            plugin.getLogger().info(number + "a");
+            this.awardAmount.put("amount", number);
+            plugin.getLogger().info(this.awardAmount.get("amount") + "adw");
         }
         plugin.getLogger().info("WinterSlash: Arenas are now loaded!");
 
     }
+    
+    
+    public void addToHash(String name, WinterSlashArena arena){
+        arenaObjects.put(name, arena);
+    }
+    
     
     /**
      * This class creates the arena
@@ -296,12 +309,6 @@ public class WinterSlashGameController {
     
     public void createArena(String arenaName, Location joinLocation,
             Location redLocation, Location greenLocation, int minPlayers) {
-
-        WinterSlashArena arena = new WinterSlashArena();
-        arena.setRed(redLocation);
-        arena.setGreen(greenLocation);
-        arena.setLobby(joinLocation);
-        arena.setName(arenaName);
         
         
         FileConfiguration arenaData = plugin.getArenaData();
@@ -336,10 +343,8 @@ public class WinterSlashGameController {
             arenaobject.setLobby(joinLocation);
             arenaobject.setName(arenaName);
             arenaobject.minPlayers(minPlayers);
-            
+            addToHash(arenaName, arenaobject);  
             this.addName(arenaName);
-            this.arenaObjects.put(arenaName, arenaobject);
-
             
             File f = new File(plugin.getDataFolder() + File.separator + "arenaData.yml");
             try {

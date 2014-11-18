@@ -34,6 +34,16 @@ public class MainCommand implements CommandExecutor {
             return false;
         }
     }
+    
+    public static boolean isDouble(String number){
+        try{
+            Double.parseDouble(number);
+            return true;
+        }
+        catch(NumberFormatException nfe){
+            return false;
+        }
+    }
 
 
     @Override
@@ -82,6 +92,21 @@ public class MainCommand implements CommandExecutor {
                 subcmnds.forceStart(player, args[1]);
             }
             
+        }
+        
+        
+        if(args[0].equalsIgnoreCase("award")){
+            if(!sender.hasPermission("winterslash.forcestart")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            
+            if(args.length == 2){
+                if(isDouble(args[1])){
+                    Double dub = Double.parseDouble(args[1]);
+                    subcmnds.setAward(dub);
+                }
+            }
         }
         
         if(args[0].equalsIgnoreCase("leave")){

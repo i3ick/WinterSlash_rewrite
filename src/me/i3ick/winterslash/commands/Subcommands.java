@@ -64,6 +64,11 @@ public class Subcommands {
 
         // make a class to save and remove inventories
 
+        if (gameController.playersInGame.contains(player.getName())){
+            player.sendMessage(ChatColor.YELLOW + "You are already in a game!");
+            return;
+        }
+        
         if (arena.getPlayers()
                 .contains(player.getName())) {
             player.sendMessage(ChatColor.YELLOW + "You are already in this arena!");
@@ -96,7 +101,12 @@ public class Subcommands {
             WinterSlashArena arena = gameController.getArena(arenas);
             if(arena.getGamers().contains(player.getName())){
                 gameController.removePlayers(player, arena.getName());
+                gameController.playersInGame.remove(player.getName());
                 player.sendMessage(ChatColor.YELLOW + "You have left the arena!");
+                
+                if(gameController.playersInGame.isEmpty()){
+                    gameController.endArena(arena.getName());
+                }
             }
         }
     }
@@ -131,6 +141,12 @@ public class Subcommands {
     }
 
     
+    public void setAward(double number){
+        plugin.getConfig().set("Settings." + "Award", number);
+        gameController.awardAmount.clear();
+        gameController.awardAmount.put("amount", new Double(number));
+        plugin.saveConfig();
+    }
     
 
     
@@ -151,12 +167,12 @@ public class Subcommands {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                gameController.arenaObjects.remove(Arenaname);
                 sender.sendMessage(ChatColor.YELLOW + "Arena " + Arenaname + " sucessfully deleted!");
-            }
-            else{
-                sender.sendMessage(ChatColor.RED + "No such arena.");
+                return;
             }
         }
+        sender.sendMessage(ChatColor.RED + "No such arena.");
         
     }
     

@@ -16,7 +16,7 @@ public class WinterSlashArena {
     private String name;
 
     
-    public static ArrayList<WinterSlashArena> arenaObjects = new ArrayList<WinterSlashArena>();
+    public ArrayList<WinterSlashArena> arenaObjects = new ArrayList<WinterSlashArena>();
     
 
     Map<Player, Location> PlayerDeathData = new HashMap<Player, Location>();
@@ -32,15 +32,19 @@ public class WinterSlashArena {
     private ArrayList<String> redteam = new ArrayList<String>();
     private ArrayList<String> frozengreen = new ArrayList<String>();
     private ArrayList<String> frozenred = new ArrayList<String>();
+    private ArrayList<String> alive = new ArrayList<String>();
 
     // Username suggests using arrays for teams ead of HashMaps!!!!
 
     private HashMap<String, Team> players = new HashMap<String, Team>();
-    private static Location redspawn;
-    private static Location greenspawn;
-    private static Location joinLocation;
+    private Location redspawn;
+    private Location greenspawn;
+    private Location joinLocation;
     private int minPlayers;
 
+    public ArrayList<String> getAlive(){
+        return alive;
+    }
     
     public void setInitData(Player player, Location loc){
         PlayerInitData.put(player, loc);
@@ -99,6 +103,7 @@ public class WinterSlashArena {
     
     public void setGreen(Location greenSpawn){
         this.greenspawn = greenSpawn;
+    
     }
     
     public void setLobby(Location lobbyLocation){

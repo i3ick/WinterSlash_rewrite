@@ -20,11 +20,12 @@ public class WinterSlashArenaCreator {
      * Constructor for gathering information necessary to create a new
      * arena.
      */
-   /* public WinterSlashArenaCreator(String arenaName, Location joinLocation,
+
+    
+    public WinterSlashArenaCreator(String arenaName, Location joinLocation,
             Location redLocation, Location greenLocation,
             int minPlayers) {
-
-        // Initializing it all:
+        
         this.name = arenaName;
         this.joinLocation = joinLocation;
         this.redspawn = redLocation;
@@ -33,8 +34,12 @@ public class WinterSlashArenaCreator {
         arenaObjects.add(this);
 
     }
-*/
+
     
+    public WinterSlashArenaCreator(WinterSlashMain winterSlashMain) {
+    }
+
+
     public void name(String arenaName) {
         this.name = arenaName;
     }
@@ -68,6 +73,11 @@ public class WinterSlashArenaCreator {
     public Location getLobbySpawn(){
         return joinLocation;
         
+    }
+
+
+    public String getName() {
+        return this.name;
     }
 
 }

@@ -167,29 +167,7 @@ public class WinterSlashEvents implements Listener{
           for (String arenas: gameController.arenaNameList) {
               WinterSlashArena arena = gameController.getArena(arenas);
               if(arena.getPlayers().contains(p.getName())){
-                  arena.setFrozen(p.getName());
               
-              
-                  // End game if green wins
-                  if (arena.getGreenFrozen().size() == arena.getGreenTeam().size()){
-                      //  end the game...
-                      Bukkit.broadcastMessage(ChatColor.GREEN + "The GREEN team has won the game!");
-                      gameController.addRestore(p.getName());
-                      gameController.endArena(arena.getName());
-                      gameController.removePlayers(p, arenas);
-                      return;
-                  }
-                  // End game if red wins
-                  if (arena.getRedFrozen().size() == arena.getRedTeam().size()) {
-                      //  end the game...
-                      Bukkit.broadcastMessage(ChatColor.GREEN + "The RED team has won the game!");
-                      gameController.addRestore(p.getName());
-                      gameController.endArena(arena.getName());
-                      gameController.removePlayers(p, arenas);
-                      return;
-                  } 
-                  
-                  
                   if (arena.ifPlayerIsRed(p)) {
                       // if player isn't frozen, freeze him. If he is, unfreeze him.
                       if (!arena.getUnfrozen().contains(p.getName())) {
@@ -212,9 +190,26 @@ public class WinterSlashEvents implements Listener{
                           arena.removeGreenFrozen(p.getName());
                       }
                   }
-                  return;
+              
+                  // End game if green wins
+                  if (arena.getGreenFrozen().size() == arena.getGreenTeam().size()){
+                      //  end the game...
+                      Bukkit.broadcastMessage(ChatColor.GREEN + "The GREEN team has won the game!");
+                      gameController.addRestore(p.getName());
+                      gameController.endArena(arena.getName());
+                      gameController.removePlayers(p, arenas);
+                      return;
+                  }
+                  // End game if red wins
+                  if (arena.getRedFrozen().size() == arena.getRedTeam().size()) {
+                      //  end the game...
+                      Bukkit.broadcastMessage(ChatColor.GREEN + "The RED team has won the game!");
+                      gameController.addRestore(p.getName());
+                      gameController.endArena(arena.getName());
+                      gameController.removePlayers(p, arenas);
+                      return;
+                  } 
               }
-              return;
           }
       }
      
@@ -226,13 +221,10 @@ public class WinterSlashEvents implements Listener{
        */
       @EventHandler
       public void onDisconnect(PlayerQuitEvent e) {
-          plugin.getLogger().info("1");
           Player player = e.getPlayer();  
           for(String arenas: gameController.arenaNameList){
-              plugin.getLogger().info("2");
               WinterSlashArena arena = gameController.getArena(arenas);
               if(arena.getPlayers().contains(player.getName())){
-                  plugin.getLogger().info("3");
                   gameController.removePlayers(player, arena.getName());
               }
           }
@@ -278,6 +270,7 @@ public class WinterSlashEvents implements Listener{
       @EventHandler (priority = EventPriority.HIGHEST)
       public void onPlayerRespawn(PlayerRespawnEvent e){
           Player p = e.getPlayer();
+          plugin.getLogger().info("1");
           
           for (String arenas: gameController.arenaNameList) {
               WinterSlashArena arena = gameController.getArena(arenas);
@@ -285,25 +278,21 @@ public class WinterSlashEvents implements Listener{
           if(gameController.restorePlayers.contains(p.getName())){
                   plugin.awardMoney(p);
                   gameController.removePlayers(p, arenas);
-                  this.runDelayTeleport(p);
           }
           }
+          
            
            for (String arenas: gameController.arenaNameList) {
-               WinterSlashArena arena = gameController.getArena(arenas);
-           if(!(arena.getPlayers().contains(p.getName()))){
-               return;
-           }
-           }
-           
-           for (String arenas: gameController.arenaNameList) {
+               plugin.getLogger().info("3");
               WinterSlashArena arena = gameController.getArena(arenas);
               if(arena.getPlayers().contains(p.getName())){
+                  plugin.getLogger().info("4");
                   arena.setUnfrozen(p.getName());
                   
                   
                   //if p is red
                    if (arena.ifPlayerIsRed(p)) {
+                       plugin.getLogger().info("5");
               if (arena.getUnfrozen().contains(p.getName())){
                   e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR,1));
                   p.teleport(arena.getRedSpawn());
@@ -315,12 +304,9 @@ public class WinterSlashEvents implements Listener{
                 //   classes.setarmor();
                   
                   if(gameController.restorePlayers.contains(p.getName())){
-                      e.setRespawnLocation(arena.getInitData(p));
+                      this.runDelayTeleport(p);
                       return;
               }
-                  
-                  // tp to death position
-                      e.setRespawnLocation(arena.getDeathData(p));
               }
           }
 
@@ -328,6 +314,7 @@ public class WinterSlashEvents implements Listener{
 
                  //if p is green
                   else if(!(arena.ifPlayerIsRed(p))) {
+                      plugin.getLogger().info("6");
               if (arena.getUnfrozen().contains(p.getName())){
                   e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR,1));
                   p.teleport(arena.getGreenSpawn());
@@ -340,34 +327,32 @@ public class WinterSlashEvents implements Listener{
                   
                   
                   if(gameController.restorePlayers.contains(p.getName())){
-                      e.setRespawnLocation(arena.getInitData(p));
+                      this.runDelayTeleport(p);
                       return;
               }
-                  // tp to death position
-                      e.setRespawnLocation(arena.getDeathData(p));
-
               }
               }
                    return;
                    }
+              else{
+                  return;
+              }
               }
            }
       
+
       public void runDelayTeleport(final Player player) {
           BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
           scheduler.scheduleSyncDelayedTask(plugin, new Runnable() {
               @Override
               public void run() {
                   for (String arenas: gameController.arenaNameList) {
-                      WinterSlashArena arena = gameController.getArena(arenas);
-                      player.teleport(arena.getDeathData(player));
+                      if(arenas.contains(player.getName())){
+                          WinterSlashArena arena = gameController.getArena(arenas);
+                          player.teleport(arena.getDeathData(player));
+                      }
                   }
               }
           }, 20L);
           }
-    
-    
-    
-    
-
 }
