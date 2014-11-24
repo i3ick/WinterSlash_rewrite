@@ -19,6 +19,11 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
 
 public class WinterSlashMain extends JavaPlugin {
     
@@ -68,12 +73,13 @@ public class WinterSlashMain extends JavaPlugin {
             getLogger().info("Error loading arenaData.yml. File not found!");
         }
         
-        
         if (!setupEconomy() ) {
             log.severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        
+        
 
         // load world
         File configFile = new File(getDataFolder(), "config.yml");
@@ -95,6 +101,7 @@ public class WinterSlashMain extends JavaPlugin {
         
         // load arena's      
         WinterSlashGameController gameController = new WinterSlashGameController(this);
+        WinterSlashClasses classes = new WinterSlashClasses();
         gameController.loadArenas();
         
         WinterSlashArenaCreator creator = new WinterSlashArenaCreator(this);
@@ -105,7 +112,7 @@ public class WinterSlashMain extends JavaPlugin {
 
         // register events
         this.getServer().getPluginManager().registerEvents(new WinterSlashEvents(this, gameController), this);
-        this.getServer().getPluginManager().registerEvents(new WinterSlashSigns(this, gameController), this);
+        this.getServer().getPluginManager().registerEvents(new WinterSlashSigns(this, gameController, classes), this);
         
         
         getLogger().info("WinterSlash Enabled!");
@@ -129,22 +136,7 @@ public class WinterSlashMain extends JavaPlugin {
         FileConfiguration arenaConfig = YamlConfiguration.loadConfiguration(f);
             return arenaConfig;
     }
-    
-    /**
-     * This method awards the winners with money
-     * @param player
-     */
-    
-    public void awardMoney(Player player){
-        WinterSlashGameController gameController = new WinterSlashGameController(this);
-        this.getLogger().info(gameController.awardAmount.get("amount") + "ad");
-        EconomyResponse r = econ.depositPlayer(player, gameController.awardAmount.get("amount"));
-        if(r.transactionSuccess()) {
-            player.sendMessage(String.format(ChatColor.GREEN + "You were awarded %s for winning the round and now you have a total of %s", econ.format(r.amount), econ.format(r.balance)));
-        } else {
-            player.sendMessage(String.format("An error occured: %s", r.errorMessage));
-        }
-    }
+
 
     public static boolean isInventoryEmpty(Player p) {
         for (ItemStack item : p.getInventory().getContents()) {

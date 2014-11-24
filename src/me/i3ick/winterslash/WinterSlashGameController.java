@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.milkbowl.vault.economy.EconomyResponse;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -16,6 +18,11 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
 
 public class WinterSlashGameController {
     
@@ -41,7 +48,19 @@ public class WinterSlashGameController {
     public HashMap<String, WinterSlashArena> arenaObjects = new HashMap<String, WinterSlashArena>();
     public ArrayList<String> restorePlayers = new ArrayList<String>();
     public HashMap<String, Double> awardAmount = new HashMap<String, Double>();
+    public ArrayList<String> Winner = new ArrayList<String>();
+    public ArrayList<String> Heavy = new ArrayList<String>();
+    public ArrayList<String> Light = new ArrayList<String>();
+    public ArrayList<String> Archer = new ArrayList<String>();
+    Map<Player, Location> PlayerInitData = new HashMap<Player, Location>();
     
+    public void setInitData(Player player, Location loc){
+        PlayerInitData.put(player, loc);
+    }
+    
+    public Location getInitData(Player player){
+           return PlayerInitData.get(player);  
+    }
     
 
     
@@ -80,8 +99,9 @@ public class WinterSlashGameController {
             arena.setSign(player.getName());
             arena.setGamers(player.getName());
             Location initLoc = player.getLocation();
-            arena.setInitData(player, initLoc);
+            setInitData(player, initLoc);
             playersInGame.add(player.getName());
+            arena.disableFire.add(player.getName());
             Bukkit.getPlayer(player.getUniqueId()).teleport(arena.getLobbyLocation());
             arena.setPlayers(player);
             arena.setUnfrozen(player.getName());
@@ -143,11 +163,25 @@ public class WinterSlashGameController {
         arena.clearSign(player.getName());
         player.getInventory().clear();
         arena.removePlayers();
-        arena.setUnfrozen(player.getName());  
-        Bukkit.getPlayer(player.getUniqueId()).teleport(arena.getInitData(player));
+        arena.setUnfrozen(player.getName()); 
+        playersInGame.remove(player.getName());
+        
+        if(Light.contains(player)){
+            Light.remove(player);
+        }
+        
+        if(Heavy.contains(player)){
+            Heavy.remove(player);
+        }
+
+        if(Archer.contains(player)){
+            Archer.remove(player);
+        }
+        Bukkit.getPlayer(player.getUniqueId()).teleport(getInitData(player));
         arena.removePlayers();
         arena.sendMessage(ChatColor.BLUE + "Player " + player.getName() + " disconnected!");
         plugin.getInventoryFromFile(new File(plugin.getDataFolder(), player.getName() + ".invsave"), player);
+        return;
         }
         
         else {   player.sendMessage(ChatColor.YELLOW + "You are not ingame!");
@@ -166,6 +200,8 @@ public class WinterSlashGameController {
     public void startArena(String arenaName){
         if(getArena(arenaName) != null){
             WinterSlashArena arena = getArena(arenaName);
+            arena.disableFire.clear();
+            WinterSlashClasses classes = new WinterSlashClasses();
             arena.sendMessage(ChatColor.GOLD + "Ready, set, GO!");
             arena.setInGame(true);
             arena.addPlayers();
@@ -174,11 +210,15 @@ public class WinterSlashGameController {
                 Player pl = Bukkit.getPlayer(p);
                 if(arena.getRedTeam().contains(pl.getName())){
                     pl.sendMessage("You are in the Red Team");
-                    pl.teleport(arena.getRedSpawn());                  
+                    pl.teleport(arena.getRedSpawn());         
+                    classes.giveTools(pl);
+                    classes.redArmor(pl);
                 }
                 else{
                     pl.sendMessage("You are in the Green Team");
                     pl.teleport(arena.getGreenSpawn());
+                    classes.giveTools(pl);
+                    classes.greenArmor(pl);
                 }    
         }
             
@@ -211,15 +251,27 @@ public class WinterSlashGameController {
                 if(p!= null){
                 Player player = Bukkit.getPlayer(p);
 
-                // Remove from game array
                 arena.getAlive().remove(player.getName());
                 arena.removeGamers(player.getName());
                 arena.getSign().remove(player.getName());
                 arena.clearSign(player.getName());
                 arena.removePlayers();
                 arena.setUnfrozen(player.getName());
+                removePlayers(player, arena.getName());
+                
+                if(Light.contains(player)){
+                    Light.remove(player);
+                }
+                
+                if(Heavy.contains(player)){
+                    Heavy.remove(player);
+                }
 
-                player.teleport(arena.getInitData(player));
+                if(Archer.contains(player)){
+                    Archer.remove(player);
+                }
+
+                player.teleport(getInitData(player));
                 player.getInventory().clear();
                 arena.getPlayers().remove(player.getName());
                 
@@ -283,9 +335,7 @@ public class WinterSlashGameController {
             addToHash(arenaName, arenaobject);    
             this.addName(arenaName);
             Double number = (Double) plugin.getConfig().get("Settings." + "Award");
-            plugin.getLogger().info(number + "a");
             this.awardAmount.put("amount", number);
-            plugin.getLogger().info(this.awardAmount.get("amount") + "adw");
         }
         plugin.getLogger().info("WinterSlash: Arenas are now loaded!");
 
@@ -294,6 +344,24 @@ public class WinterSlashGameController {
     
     public void addToHash(String name, WinterSlashArena arena){
         arenaObjects.put(name, arena);
+    }
+    
+    
+    
+    
+    /**
+     * This method awards the winners with money
+     * @param player
+     */
+    
+    public void awardMoney(Player player){
+        plugin.getLogger().info(this.awardAmount.get("amount") + "ad");
+        EconomyResponse r = plugin.econ.depositPlayer(player, this.awardAmount.get("amount"));
+        if(r.transactionSuccess()) {
+            player.sendMessage(String.format(ChatColor.GREEN + "You were awarded %s for winning the round and now you have a total of %s", plugin.econ.format(r.amount), plugin.econ.format(r.balance)));
+        } else {
+            player.sendMessage(String.format("An error occured: %s", r.errorMessage));
+        }
     }
     
     
