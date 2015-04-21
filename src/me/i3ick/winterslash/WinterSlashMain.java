@@ -1,9 +1,14 @@
 package me.i3ick.winterslash;
 
+import java.awt.print.Printable;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import me.i3ick.winterslash.commands.MainCommand;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -17,6 +22,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -25,9 +33,12 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
+import com.mysql.jdbc.log.LogUtils;
+
 public class WinterSlashMain extends JavaPlugin {
     
     public static Economy econ = null;
+    public static WorldEditPlugin worldEdit = null;
     private static final Logger log = Logger.getLogger("Minecraft");
 
     
@@ -74,9 +85,13 @@ public class WinterSlashMain extends JavaPlugin {
         }
         
         if (!setupEconomy() ) {
-            log.severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
-            getServer().getPluginManager().disablePlugin(this);
-            return;
+            log.severe(String.format("Money disabled due to no Vault dependency found!", getDescription().getName()));
+          //  getServer().getPluginManager().disablePlugin(this);
+           // return;
+        }
+
+        if (!setupWorldEdit() ) {
+            log.severe(String.format("WorldEdit not found. You won't be able to generate arena throught schematics.", getDescription().getName()));
         }
         
         
@@ -113,9 +128,14 @@ public class WinterSlashMain extends JavaPlugin {
         // register events
         this.getServer().getPluginManager().registerEvents(new WinterSlashEvents(this, gameController), this);
         this.getServer().getPluginManager().registerEvents(new WinterSlashSigns(this, gameController, classes), this);
-        
-        
-        getLogger().info("WinterSlash Enabled!");
+
+        PluginDescriptionFile pdf = this.getDescription();
+        getLogger().info("\n\n#####~~~~~~ WINTER-SLASH ~~~~~~##### \n" +
+                         "   WinterSlash version " + pdf.getVersion() + " is now running!\n" +
+                         "   Vault enabled: " + setupEconomy() +
+                         "\n\n" + "#####~~~~~~~~ by i3ick ~~~~~~~~#####"
+
+        );
     }
 
     
@@ -129,6 +149,19 @@ public class WinterSlashMain extends JavaPlugin {
         }
         econ = rsp.getProvider();
         return econ != null;
+    }
+
+
+    private boolean setupWorldEdit() {
+        if (getServer().getPluginManager().getPlugin("WorldEdit") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<WorldEditPlugin> wep = getServer().getServicesManager().getRegistration(WorldEditPlugin.class);
+        if (wep == null) {
+            return false;
+        }
+        worldEdit = wep.getProvider();
+        return worldEdit != null;
     }
 
     public FileConfiguration getArenaData(){
@@ -157,6 +190,18 @@ public class WinterSlashMain extends JavaPlugin {
     }
     }
     
+    
+    /*
+    private void setupVault(PluginManager pm) {
+        Plugin vault = pm.getPlugin("Vault");
+        if (vault != null && vault.isEnabled()) {
+            setupEconomy();
+        } else {
+            this.getLogger().info("Vault not loaded: no economy command costs & no permission group support");
+        }
+    }
+    
+    */
 
     
     
@@ -172,7 +217,6 @@ public class WinterSlashMain extends JavaPlugin {
             invConfig.set("Size", inventory.getSize());
             invConfig.set("Max stack size", inventory.getMaxStackSize());
             if (inventory.getHolder() instanceof Player) invConfig.set("Holder", ((Player) inventory.getHolder()).getName());
-
             ItemStack[] invContents = inventory.getContents();
             for (int i = 0; i < invContents.length; i++) {
                 ItemStack itemInInv = invContents[i];
@@ -209,6 +253,15 @@ public class WinterSlashMain extends JavaPlugin {
                 player.getInventory().setContents(invContents);
             } catch (Exception ex) {
             }
+            try{
+                ItemStack[] invContents = new ItemStack[invSize];
+                for (int i = 0; i < invSize; i++) {
+                    if (invConfig.contains("Armor " + i)) invContents[i] = invConfig.getItemStack("Armor " + i);
+                    else invContents[i] = new ItemStack(Material.AIR);
+                }
+            } catch (Exception ex) {
+            }
+            
             return inventory;
         } catch (Exception ex) {
             return null;

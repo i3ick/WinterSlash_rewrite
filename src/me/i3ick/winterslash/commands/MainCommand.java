@@ -56,6 +56,19 @@ public class MainCommand implements CommandExecutor {
             plugin.getLogger().info("No, but srsly, you can't controll WinterSlash commands through the console");
             return true;
         }
+        
+        if(args.length == 0 || args[0].equalsIgnoreCase("help")){
+            if(sender.hasPermission("winterslash.*")){
+                    subcmnds.helpMod(player);
+            }
+            else if(sender.hasPermission("winterslashplayers.*")){
+                    subcmnds.helpPlayer(player);
+            }
+            else{
+                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws help");
+            }
+            return false;
+        }
             
         // joining the arena
         if (args[0].equalsIgnoreCase("join")) {
@@ -63,11 +76,15 @@ public class MainCommand implements CommandExecutor {
                 sender.sendMessage("No permission!");
                 return true;
             }
-            if (!(args.length == 2)) {
+            if(args.length == 1){
+                subcmnds.joinRandom(player);
+            }
+            if(args.length == 2){
+                subcmnds.join(player, args[1]);
+            }else{
                 player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws join <arenaname>");
                 return true;
             }
-            subcmnds.join(player, args[1]);
         }
         
         if (args[0].equalsIgnoreCase("list")) {
@@ -94,9 +111,30 @@ public class MainCommand implements CommandExecutor {
             
         }
         
+        if(args[0].equalsIgnoreCase("end")){
+            if(!sender.hasPermission("winterslash.forceend")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            if(args.length == 2){
+                subcmnds.forceEnd(player, args[1]);
+            }
+            
+        }
+        
+        if(args[0].equalsIgnoreCase("end")){
+            if(!sender.hasPermission("winterslash.forceend")){
+                sender.sendMessage("No permission!");
+                return true;
+            }
+            if(args.length == 2){
+                subcmnds.forceEnd(player, args[1]);
+            }
+            
+        }
         
         if(args[0].equalsIgnoreCase("award")){
-            if(!sender.hasPermission("winterslash.forcestart")){
+            if(!sender.hasPermission("winterslash.award")){
                 sender.sendMessage("No permission!");
                 return true;
             }
@@ -221,23 +259,26 @@ public class MainCommand implements CommandExecutor {
             
             return true;
         }
+
         
-        if(args[0].equalsIgnoreCase("help")){
-            if(sender.hasPermission("winterslash.*")){
-                if(args.length == 1){
-                    subcmnds.helpMod(player);
-                }
-            }
-            else if(sender.hasPermission("winterslashplayers.*")){
-                if(args.length == 1){
-                    subcmnds.helpPlayer(player);
+        /** Forces all the players to join a match
+         * 
+         */
+
+        if(args[0].equalsIgnoreCase("joinall")){
+            if(sender.hasPermission("winterslash.joinall*")){
+                if(args.length == 2){
+                    String name = args[1].toString();
+                    subcmnds.joinAll(player, name);
                 }
             }
             else{
-                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws help");
+                player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws joinall <arenaname>");
             }
             return true;
         }
+        
+        
        
         if(sender.hasPermission("winterslash.*")){
             if(args.length == 1){
@@ -255,10 +296,7 @@ public class MainCommand implements CommandExecutor {
             player.sendMessage("No permission!");
         }
         
-        
-        
-        
-        
+  
         return false;
     }
 }

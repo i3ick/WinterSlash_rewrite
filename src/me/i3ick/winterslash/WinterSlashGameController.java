@@ -1,28 +1,33 @@
 package me.i3ick.winterslash;
 
-import java.awt.Color;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.NBTInputStream;
 import net.milkbowl.vault.economy.EconomyResponse;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
-import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
+import sun.security.krb5.internal.ccache.Tag;
+
+import javax.swing.*;
 
 public class WinterSlashGameController {
     
@@ -41,11 +46,46 @@ public class WinterSlashGameController {
        }
         return obj;
     }
+
+    public WinterSlashArena getAvailableArena(){
+        WinterSlashArena obj = null;
+
+        for(int i = 0; i < arenaNameList.size(); i=i+1){
+            String name = arenaNameList.get(i);
+            WinterSlashArena arena = getArena(name);
+            if(!(arena.isInGame())){
+                return arena;
+            }
+        }
+        return obj;
+    }
+  
+  public WinterSlashPlayerInfo getPlayerData(String name){
+      WinterSlashPlayerInfo obj = null;
+      if(this.stats.containsKey(name)){
+          obj = this.stats.get(name);
+      }
+       return obj;
+   }
+  
+  
+  public KillStreakWolfLogic getWolfData(String name){
+      KillStreakWolfLogic obj = null;
+      if(this.wolfObject.containsKey(name)){
+          obj = this.wolfObject.get(name);
+      }
+       return obj;
+   }
   
   
     public ArrayList<String> arenaNameList = new ArrayList<String>();
     public ArrayList<String> playersInGame = new ArrayList<String>();
+    public HashMap<String, Location> userBlockLoc = new HashMap<String, Location>();
+    public HashMap<Location, Material> blockRestore = new HashMap<Location, Material>();
+    public HashMap<Location, Byte> blockRestoreByte = new HashMap<Location, Byte>();
+    public HashMap<String, KillStreakWolfLogic> wolfObject = new HashMap<String, KillStreakWolfLogic>();
     public HashMap<String, WinterSlashArena> arenaObjects = new HashMap<String, WinterSlashArena>();
+    public HashMap<String, WinterSlashPlayerInfo> stats = new HashMap<String, WinterSlashPlayerInfo>();
     public ArrayList<String> restorePlayers = new ArrayList<String>();
     public HashMap<String, Double> awardAmount = new HashMap<String, Double>();
     public ArrayList<String> Winner = new ArrayList<String>();
@@ -53,6 +93,7 @@ public class WinterSlashGameController {
     public ArrayList<String> Light = new ArrayList<String>();
     public ArrayList<String> Archer = new ArrayList<String>();
     Map<Player, Location> PlayerInitData = new HashMap<Player, Location>();
+    public HashMap<String, ItemStack[]> PlayerArmor = new HashMap<String, ItemStack[]>();
     
     public void setInitData(Player player, Location loc){
         PlayerInitData.put(player, loc);
@@ -94,7 +135,6 @@ public class WinterSlashGameController {
         
         if (getArena(arenaName) != null) { 
         WinterSlashArena arena = getArena(arenaName);
-        if (!(getArena(arenaName).isFull())) {
             if (!arena.isInGame()) {
             arena.setSign(player.getName());
             arena.setGamers(player.getName());
@@ -108,16 +148,24 @@ public class WinterSlashGameController {
             plugin.saveInventoryToFile(player.getInventory(), plugin.getDataFolder(), player.getName());
             player.getInventory().clear();
             arena.getAlive().add(player.getName());
+            PlayerArmor.put(player.getName(), player.getInventory().getArmorContents());
+            ItemStack nothing = new ItemStack(Material.AIR, 1);
+            player.getInventory().setHelmet(nothing);
+            player.getInventory().setChestplate(nothing);
+            player.getInventory().setLeggings(nothing);
+            player.getInventory().setBoots(nothing);
          
 
             int playersLeft = arena.getMinPlayers() - arena.getPlayers().size();
-            if (!(arena.getMinPlayers() == arena.getPlayers().size())) {
-                
-                arena.sendMessage(ChatColor.BLUE + player.getName() + " joned the arena!");
-                arena.sendMessage(ChatColor.BLUE + "waiting for " + playersLeft + " more players!");
+            if (!(arena.getMinPlayers() <= arena.getPlayers().size())) {
+
+                player.sendMessage("Connected to " + arena.getName() + " arena.");
+                arena.sendMessage(ChatColor.BLUE + player.getName() + " joined the arena!");
+                if(playersLeft > 0){
+                    arena.sendMessage(ChatColor.BLUE + "waiting for " + playersLeft + " more players!");
+                }
                 return;
             }
-            
             
             
             if (playersLeft == 0) {
@@ -125,11 +173,9 @@ public class WinterSlashGameController {
                 runDelayArena(arenaName);
                 }
             }else{
-                player.sendMessage(Color.yellow + "Match in progress!");
+                player.sendMessage(ChatColor.YELLOW + "Match in progress!");
+                plugin.getLogger().info(arena.getPlayers().size() + "d");
             }
-        } else {
-            player.sendMessage(Color.yellow + "This arena is full!");
-        }
         }else{
             player.sendMessage(ChatColor.RED + "The arena you are looking for could not be found!");
         }
@@ -140,7 +186,11 @@ public class WinterSlashGameController {
     scheduler.scheduleSyncDelayedTask(plugin, new Runnable() {
         @Override
         public void run() {
-            startArena(arenaName);
+            WinterSlashArena arena = getArena(arenaName);
+            if (!(arena.isInGame())) {
+                startArena(arenaName);
+
+            }
         }
     }, 300L);
     }
@@ -155,6 +205,7 @@ public class WinterSlashGameController {
      */
 
     public void removePlayers(Player player, String arenaname) {
+        plugin.getLogger().info("removePlayers");
         if (getArena(arenaname) != null) { 
             WinterSlashArena arena = this.getArena(arenaname);
         if (arena.getPlayers().contains(player.getName())) {
@@ -162,8 +213,7 @@ public class WinterSlashGameController {
         arena.getAlive().remove(player.getName());
         arena.clearSign(player.getName());
         player.getInventory().clear();
-        arena.removePlayers();
-        arena.setUnfrozen(player.getName()); 
+        arena.getUnfrozen().add(player.getName());
         playersInGame.remove(player.getName());
         
         if(Light.contains(player)){
@@ -177,20 +227,159 @@ public class WinterSlashGameController {
         if(Archer.contains(player)){
             Archer.remove(player);
         }
+        
+        for (PotionEffect effect : player.getActivePotionEffects())
+            player.removePotionEffect(effect.getType());
+        
         Bukkit.getPlayer(player.getUniqueId()).teleport(getInitData(player));
-        arena.removePlayers();
         arena.sendMessage(ChatColor.BLUE + "Player " + player.getName() + " disconnected!");
         plugin.getInventoryFromFile(new File(plugin.getDataFolder(), player.getName() + ".invsave"), player);
+        ItemStack nothing = new ItemStack(Material.AIR, 1);
+        player.getInventory().setHelmet(nothing);
+        player.getInventory().setChestplate(nothing);
+        player.getInventory().setLeggings(nothing);
+        player.getInventory().setBoots(nothing);
+        player.getInventory().setArmorContents(PlayerArmor.get(player));
+        player.sendMessage(ChatColor.BLUE + "Disconnected.");
+        
+        if(arena.getRedTeam().contains(player.getName())){
+            arena.getRedTeam().remove(player.getName());
+        }
+        
+        if(arena.getGreenTeam().contains(player.getName())){
+            arena.getGreenTeam().remove(player.getName());
+        }
+        
+        if(arena.getRedTeam().isEmpty() || arena.getGreenTeam().isEmpty()){
+            endKick(arena.getName());
+            endArena(arena.getName());
+        } 
         return;
         }
         
-        else {   player.sendMessage(ChatColor.YELLOW + "You are not ingame!");
+        else {player.sendMessage(ChatColor.YELLOW + "You are not ingame!");
         }
         }
         else{
             player.sendMessage(ChatColor.RED + "The arena you are looking for could not be found!");
         }
     }
+    
+    
+    /**
+     * Removes the player who forcibly lost connection or
+     * disconnected the game from the arena, game and all arrays.
+     * The player is returned his inventory.
+     * @param player
+     * @param arenaname
+     */
+
+    public void forceRemovePlayers(Player player, String arenaname) {
+        plugin.getLogger().info("forceRemovePlayers");
+        if (getArena(arenaname) != null) { 
+            WinterSlashArena arena = this.getArena(arenaname);
+        if (arena.getPlayers().contains(player.getName())) {
+        arena.removeGamers(player.getName());
+        arena.getAlive().remove(player.getName());
+        arena.clearSign(player.getName());
+        player.getInventory().clear();
+        arena.getUnfrozen().add(player.getName());
+        playersInGame.remove(player.getName());
+        
+        if(Light.contains(player)){
+            Light.remove(player);
+        }
+        
+        if(Heavy.contains(player)){
+            Heavy.remove(player);
+        }
+
+        if(Archer.contains(player)){
+            Archer.remove(player);
+        }
+        
+        for (PotionEffect effect : player.getActivePotionEffects())
+            player.removePotionEffect(effect.getType());
+        
+        Bukkit.getPlayer(player.getUniqueId()).teleport(getInitData(player));
+        arena.sendMessage(ChatColor.BLUE + "Player " + player.getName() + " disconnected!");
+        plugin.getInventoryFromFile(new File(plugin.getDataFolder(), player.getName() + ".invsave"), player);
+        ItemStack nothing = new ItemStack(Material.AIR, 1);
+        player.getInventory().setHelmet(nothing);
+        player.getInventory().setChestplate(nothing);
+        player.getInventory().setLeggings(nothing);
+        player.getInventory().setBoots(nothing);
+        player.getInventory().setArmorContents(PlayerArmor.get(player));
+        
+        if(arena.getRedTeam().contains(player.getName())){
+            arena.getRedTeam().remove(player.getName());
+        }
+        
+        if(arena.getGreenTeam().contains(player.getName())){
+            arena.getGreenTeam().remove(player.getName());
+        }
+                return;
+            }
+        }
+    }
+    
+    /**
+     * Removes the DEAD player from the arena, game, all arrays.
+     * The player is returned his inventory and teleported to
+     * his initial position.
+     * @param player
+     * @param arenaname
+     */
+
+    public void removeDeadPlayers(Player player, String arenaname) {
+        plugin.getLogger().info("removeDeadPlayers");
+        if (getArena(arenaname) != null) { 
+            WinterSlashArena arena = this.getArena(arenaname);
+        if (arena.getPlayers().contains(player.getName())) {
+        arena.removeGamers(player.getName());
+        arena.clearSign(player.getName());
+        player.getInventory().clear();
+        arena.getUnfrozen().remove(player.getName());
+        arena.getPlayers().remove(player.getName());
+        playersInGame.remove(player.getName());
+        this.stats.remove(player.getName());
+        if(Light.contains(player)){
+            Light.remove(player);
+        }
+        
+        if(Heavy.contains(player)){
+            Heavy.remove(player);
+        }
+
+        if(Archer.contains(player)){
+            Archer.remove(player);
+        }
+        
+        for (PotionEffect effect : player.getActivePotionEffects())
+            player.removePotionEffect(effect.getType());
+        
+        plugin.getInventoryFromFile(new File(plugin.getDataFolder(), player.getName() + ".invsave"), player);
+        ItemStack nothing = new ItemStack(Material.AIR, 1);
+        player.getInventory().setHelmet(nothing);
+        player.getInventory().setChestplate(nothing);
+        player.getInventory().setLeggings(nothing);
+        player.getInventory().setBoots(nothing);
+        player.getInventory().setArmorContents(PlayerArmor.get(player));
+        player.sendMessage(ChatColor.BLUE + "Disconnected.");
+        
+        if(arena.getGamers().size() == 0){
+            endArena(arenaname);
+        }
+        
+        return;
+        }
+        }
+        else{
+            player.sendMessage(ChatColor.RED + "The arena you are looking for could not be found!");
+        }
+        return;
+    }
+    
     
     /**
      * Start the arena(match).
@@ -206,19 +395,31 @@ public class WinterSlashGameController {
             arena.setInGame(true);
             arena.addPlayers();
             
-            for (String p: arena.getPlayers()) {
-                Player pl = Bukkit.getPlayer(p);
+            for (String p: arena.getGamers()) {
+                Player pl = Bukkit.getPlayer(p);  
+                WinterSlashPlayerInfo stats = new WinterSlashPlayerInfo(this);
+                stats.setName(pl.getName());
+                addToPlayerHash(pl.getName(), stats);
+                
                 if(arena.getRedTeam().contains(pl.getName())){
                     pl.sendMessage("You are in the Red Team");
                     pl.teleport(arena.getRedSpawn());         
-                    classes.giveTools(pl);
                     classes.redArmor(pl);
+                    
+                    if(!(Light.contains(pl)) || (!Heavy.contains(pl)) || (!Archer.contains(pl))){
+                        classes.setDefault(pl);
+                        return;
+                    }
                 }
                 else{
                     pl.sendMessage("You are in the Green Team");
                     pl.teleport(arena.getGreenSpawn());
-                    classes.giveTools(pl);
                     classes.greenArmor(pl);
+                    
+                    if((!Light.contains(pl)) || (!Heavy.contains(pl)) || (!Archer.contains(pl)) ){
+                        classes.setDefault(pl);
+                        return;
+                    }
                 }    
         }
             
@@ -228,18 +429,62 @@ public class WinterSlashGameController {
     }
     
     /**
+     * Adds all the players to the game
+     */
+    public void getJoinAll(String arenaName){
+        for(Player n :Bukkit.getServer().getOnlinePlayers()){
+            WinterSlashArena arena = getArena(arenaName); 
+            this.addPlayers(n, arenaName);
+        }
+        return;
+    }
+    
+    
+    /**
      * Ends the arena match
      * @param arenaName
      */
-    
-    
     public void endArena(String arenaName) {
+        plugin.getLogger().info("endArena");
+        if (getArena(arenaName) != null) {
 
+            WinterSlashArena arena = getArena(arenaName); 
+            
+         /*   if(arena.getUnfrozen().isEmpty()){
+                return;
+            } */
+            removeChests();
+            arena.reset();
+            arena.setInGame(false);
+            plugin.getLogger().info("cleared!");
+        } else {
+            return;
+        }
+    }
+
+    public void removeChests(){
+
+        for(Map.Entry<Location, Material> chestPosInfo: blockRestore.entrySet()) {
+            chestPosInfo.getKey().getBlock().setType(Material.AIR);
+            chestPosInfo.getKey().getBlock().getRelative(BlockFace.DOWN).setType(chestPosInfo.getValue());
+
+            Block upd = chestPosInfo.getKey().getBlock().getRelative(BlockFace.DOWN);
+            int byt = blockRestoreByte.get(chestPosInfo.getKey().getBlock().getLocation());
+            upd.setData((byte) byt);
+        }
+    }
+    
+    /**
+     * Kicks out all the players before ending the arena
+     * @param arenaName
+     */
+    
+    public void endKick(String arenaName) {
+        plugin.getLogger().info("endKick");
         if (getArena(arenaName) != null) {
 
             WinterSlashArena arena = getArena(arenaName); 
             arena.sendMessage(ChatColor.GOLD + "Match is over!");
-            arena.setInGame(false);
 
             if (arena.getGamers().size() == 0) {
                 return;
@@ -247,17 +492,19 @@ public class WinterSlashGameController {
             if(arena.getUnfrozen().isEmpty()){
                 return;
             }
-            for (String p: arena.getAlive()) {
+            
+            List<String> playerList = arena.getAlive();
+            
+            for (String p: playerList) {
                 if(p!= null){
                 Player player = Bukkit.getPlayer(p);
 
-                arena.getAlive().remove(player.getName());
                 arena.removeGamers(player.getName());
                 arena.getSign().remove(player.getName());
                 arena.clearSign(player.getName());
-                arena.removePlayers();
-                arena.setUnfrozen(player.getName());
-                removePlayers(player, arena.getName());
+                arena.getUnfrozen().remove(player.getName());
+                playersInGame.remove(player.getName());
+                this.stats.remove(player.getName());
                 
                 if(Light.contains(player)){
                     Light.remove(player);
@@ -270,19 +517,38 @@ public class WinterSlashGameController {
                 if(Archer.contains(player)){
                     Archer.remove(player);
                 }
-
+                
+                for (PotionEffect effect : player.getActivePotionEffects())
+                    player.removePotionEffect(effect.getType());
+                
                 player.teleport(getInitData(player));
                 player.getInventory().clear();
-                arena.getPlayers().remove(player.getName());
-                
+                ItemStack nothing = new ItemStack(Material.AIR, 1);
+                player.getInventory().setHelmet(nothing);
+                player.getInventory().setChestplate(nothing);
+                player.getInventory().setLeggings(nothing);
+                player.getInventory().setBoots(nothing);
+                player.getInventory().setArmorContents(PlayerArmor.get(p));
+                arena.getPlayers().remove(player.getName());               
                 plugin.getInventoryFromFile(new File(plugin.getDataFolder(), player.getName() + ".invsave"), player);
-
+                player.sendMessage(ChatColor.BLUE + "Disconnected.");
+                
+                if(arena.getRedTeam().contains(player.getName())){
+                    arena.getRedTeam().remove(player.getName());
+                }
+                
+                if(arena.getGreenTeam().contains(player.getName())){
+                    arena.getGreenTeam().remove(player.getName());
+                }
+                
                 }
             }
+            playerList.clear();
         } else {
             return;
         }
     }
+    
     
     /**
      * Get all the spawn data from arenaData config file and puts them into an
@@ -346,6 +612,15 @@ public class WinterSlashGameController {
         arenaObjects.put(name, arena);
     }
     
+    public void addToPlayerHash(String name, WinterSlashPlayerInfo data){
+        stats.put(name, data);
+    }
+    
+    
+    public void addToWolfHash(String name, KillStreakWolfLogic wolf){
+        wolfObject.put(name, wolf);
+        plugin.getLogger().info("atthashto" + wolfObject.get(name).getName());
+    }
     
     
     
@@ -355,7 +630,12 @@ public class WinterSlashGameController {
      */
     
     public void awardMoney(Player player){
-        plugin.getLogger().info(this.awardAmount.get("amount") + "ad");
+        
+        if(plugin.econ == null){
+            plugin.getLogger().info("can't award money, no Vault or Economy plugin detected");
+            return;
+        }
+        
         EconomyResponse r = plugin.econ.depositPlayer(player, this.awardAmount.get("amount"));
         if(r.transactionSuccess()) {
             player.sendMessage(String.format(ChatColor.GREEN + "You were awarded %s for winning the round and now you have a total of %s", plugin.econ.format(r.amount), plugin.econ.format(r.balance)));
@@ -363,8 +643,8 @@ public class WinterSlashGameController {
             player.sendMessage(String.format("An error occured: %s", r.errorMessage));
         }
     }
-    
-    
+
+
     /**
      * This class creates the arena
      * @param arenaName
@@ -420,6 +700,7 @@ public class WinterSlashGameController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
     }
     
     

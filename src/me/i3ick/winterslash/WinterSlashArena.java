@@ -33,6 +33,7 @@ public class WinterSlashArena {
     private ArrayList<String> frozenred = new ArrayList<String>();
     private ArrayList<String> alive = new ArrayList<String>();
     public ArrayList<String> disableFire = new ArrayList<String>();
+    private ArrayList<String> clickedSign = new ArrayList<String>();
 
     // Username suggests using arrays for teams ead of HashMaps!!!!
 
@@ -42,11 +43,34 @@ public class WinterSlashArena {
     private Location joinLocation;
     private int minPlayers;
 
+    public void reset(){
+        this.red.clear();
+        this.green.clear();
+        this.ingamePlayers.clear();
+        this.frozen.clear();
+        this.sign.clear();
+        this.activeGamers.clear();
+        this.greenteam.clear();
+        this.redteam.clear();
+        this.frozengreen.clear();
+        this.frozenred.clear();
+        this.alive.clear();
+        this.disableFire.clear();
+        this.clickedSign.clear();
+    }
+    
+    
     public ArrayList<String> getAlive(){
         return alive;
     }
     
+    public ArrayList<String> getClickedSign(){
+        return clickedSign;
+    }
     
+    public void setClicked(Player p){
+        clickedSign.add(p.getName());
+    }
     
     public void setDeathData(Player player, Location loc){
         PlayerDeathData.put(player, loc);
@@ -58,16 +82,14 @@ public class WinterSlashArena {
     
     // Sort teams
     public void addPlayers() {
-        for (String p : getPlayers()) {
+        for (String p : getGamers()) {          
             if (red.size() > green.size()) {
                 green.add(p);
                 players.put(p, Team.GREEN);
-                return;
 
             } else {
                 red.add(p);
                 players.put(p, Team.RED);
-                return;
             }
         }
     }
@@ -78,7 +100,7 @@ public class WinterSlashArena {
     
     
     public void removePlayers() {
-        for (String p : getPlayers()) {
+        for (String p : getGamers()) {
             red.remove(p);
             green.remove(p);
             ingamePlayers.remove(p);
@@ -237,7 +259,15 @@ public class WinterSlashArena {
      * @return
      */
     public boolean isFull() {
-        if (players.size() >= minPlayers) {
+        if (getGamers().size() >= minPlayers) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean ifContains(Player player){
+        if(getGamers().contains(player.getName())){
             return true;
         } else {
             return false;
@@ -249,7 +279,10 @@ public class WinterSlashArena {
      */
     public void sendMessage(String message) {
         for (String s : ingamePlayers) {
+            Player player = Bukkit.getServer().getPlayerExact(s);
+            if(player != null){
             Bukkit.getPlayer(s).sendMessage(message);
+            }
         }
     }
     

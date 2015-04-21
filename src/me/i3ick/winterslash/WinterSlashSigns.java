@@ -40,8 +40,8 @@ public class WinterSlashSigns implements Listener{
             for (String arenas : gameController.arenaNameList) {
                 WinterSlashArena arena = gameController.getArena(arenas);
                 if (arena.getName().equals(arenan)) {
-                    e.setLine(0, ChatColor.YELLOW + ChatColor.BOLD.toString() + "Punch 2");
-                    e.setLine(1, ChatColor.YELLOW + ChatColor.BOLD.toString() + "Force Start");
+                    e.setLine(0, ChatColor.WHITE + ChatColor.BOLD.toString() + "Punch 2");
+                    e.setLine(1, ChatColor.WHITE + ChatColor.BOLD.toString() + "Force Start");
                     e.setLine(2, arenan);
                     e.setLine(3, ChatColor.MAGIC.toString() + ChatColor.BOLD.toString() + "stinky fish");
                     return;
@@ -117,12 +117,21 @@ public class WinterSlashSigns implements Listener{
                    for (String arenas: gameController.arenaNameList) {
                       WinterSlashArena arena = gameController.getArena(arenas);
                       if(arena.getPlayers().contains(e.getPlayer().getName())){
-                  
-                  int playersLeft = plugin.getConfig().getInt(".MinPlayerNumber") - arena.getSign().size();
-                  if(playersLeft < 1){
+                         if(arena.getClickedSign().contains(player.getName())){
+                             int playersLeft = arena.getMinPlayers() - arena.getClickedSign().size();
+                             arena.sendMessage(ChatColor.DARK_PURPLE.toString() + playersLeft + " more players needed to force start.");
+                             return;
+                         }
+                          arena.setClicked(player);
+
+                          
+                  if(arena.getClickedSign().size() >= arena.getMinPlayers()){
                       String arenan = sign.getLine(2).toString();
-                      gameController.startArena(arenan);
+                      arena.sendMessage("Game starting in 15 seconds!");
+                      gameController.runDelayArena(arenan);
+                      
                   }else{
+                      int playersLeft = arena.getMinPlayers() - arena.getClickedSign().size();
                   arena.sendMessage(ChatColor.DARK_PURPLE.toString() + playersLeft + " more players needed to force start.");
                   }return;}
                       else{
@@ -177,7 +186,6 @@ public class WinterSlashSigns implements Listener{
                         player.sendMessage("You are a heavy class now!");
                     } else if(!(gameController.Heavy.contains(player.getName()))) {
                         gameController.Heavy.add(player.getName());
-                        classes.giveTools(player);
                         classes.setHeavy(player);
                         player.sendMessage("You are a heavy class now!");
                     }
@@ -208,7 +216,6 @@ public class WinterSlashSigns implements Listener{
                         player.sendMessage("You are a light class now!");
                     } else if(!(gameController.Light.contains(player.getName()))) {
                         gameController.Light.add(player.getName());
-                        classes.giveTools(player);
                         classes.setRunner(player);
                         player.sendMessage("You are a light class now!");
                     }
@@ -238,7 +245,6 @@ public class WinterSlashSigns implements Listener{
                         player.sendMessage("You are an archer class now!");
                     } else if (!(gameController.Archer.contains(player.getName()))){
                         gameController.Archer.add(player.getName());
-                        classes.giveTools(player);
                         classes.setArcher(player);
                         player.sendMessage("You are an archer class now!");
                     }

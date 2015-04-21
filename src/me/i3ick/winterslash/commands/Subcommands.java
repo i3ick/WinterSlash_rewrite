@@ -52,17 +52,11 @@ public class Subcommands {
         int maxplayers = config.getInt("arenas." + arenaName + ".maxPlayers");
         
 
-        if (!player.hasPermission("freezetag.ftj")) {
-            player.sendMessage("No permission");
-            return;
-        }
 
         if (arena == null) {
             player.sendMessage(ChatColor.RED + "This arena doesn't exist");
             return;
         }
-
-        // make a class to save and remove inventories
 
         if (gameController.playersInGame.contains(player.getName())){
             player.sendMessage(ChatColor.YELLOW + "You are already in a game!");
@@ -82,12 +76,25 @@ public class Subcommands {
         else {
             player.sendMessage(ChatColor.YELLOW + "You have been put on the games waiting list.");
             gameController.addPlayers(player, arenaName);
-
-            // This starts the game
-            if (arena.getPlayers().size() >= maxplayers) {
-            }
         }
     }
+
+
+    /**
+     * Method for joining a random arena.
+     * @param player
+     */
+
+    public void joinRandom(Player player) {
+
+        WinterSlashArena arena = gameController.getAvailableArena();
+        if(!(arena == null)){
+            this.join(player, arena.getName());
+            return;
+        }
+        player.sendMessage("All arenas are busy at this moment!");
+    }
+    
     
     /**
      * Removes the player from the game and teleports him to his initial
@@ -100,15 +107,13 @@ public class Subcommands {
         for (String arenas: gameController.arenaNameList) {
             WinterSlashArena arena = gameController.getArena(arenas);
             if(arena.getGamers().contains(player.getName())){
+              
                 gameController.removePlayers(player, arena.getName());
                 gameController.playersInGame.remove(player.getName());
-                player.sendMessage(ChatColor.YELLOW + "You have left the arena!");
-                
-                if(gameController.playersInGame.isEmpty()){
-                    gameController.endArena(arena.getName());
-                }
+                gameController.stats.remove(player.getName());            
             }
         }
+       
     }
     
     
@@ -118,8 +123,22 @@ public class Subcommands {
      * @param arenaName
      */
     public void forceStart(Player player, String arenaName){
+        if(gameController.getArena(arenaName).getPlayers().isEmpty()){
+            player.sendMessage(ChatColor.YELLOW + "Can't start empty arena!");
+            return;
+        }
         player.sendMessage(ChatColor.GREEN + "Arena " + arenaName + " has been force started!");
         gameController.startArena(arenaName);
+    }
+    
+    /**
+     * This method forces all the players to join the match
+     * @param player
+     * @param arenaName
+     */
+    public void joinAll(Player player, String arenaName){
+        player.sendMessage(ChatColor.AQUA + "All players forced to join game!");
+        gameController.getJoinAll(arenaName);
     }
     
     
@@ -140,6 +159,10 @@ public class Subcommands {
         }
     }
 
+    /**
+     * Set the money award
+     * @param number
+     */
     
     public void setAward(double number){
         plugin.getConfig().set("Settings." + "Award", number);
@@ -147,15 +170,16 @@ public class Subcommands {
         gameController.awardAmount.put("amount", new Double(number));
         plugin.saveConfig();
     }
-    
 
-    
-    
+
+
+
     /**
      * Removes an arena
-     * @param player
+     * @param Arenaname
+     * @param sender
      */
-    
+
     public void removeArena(String Arenaname, Player sender){
         FileConfiguration arenaData = plugin.getArenaData();
         for(String arenas: arenaData.getConfigurationSection("arenas").getKeys(false)){ 
@@ -182,9 +206,9 @@ public class Subcommands {
                  Location redSpawn = creator.getRedSpawn();
                  Location greenSpawn = creator.getGreenSpawn();
                  Location lobbySpawn = creator.getLobbySpawn();
-                 
-                 String world = player.getLocation().getWorld().getName();
-                 plugin.getArenaData().set("Worlds" + ".World", world);
+
+        String world = player.getLocation().getWorld().getName();
+        plugin.getArenaData().set("Worlds" + ".World", world);
                  plugin.saveArenaData();
                  
                  if(world != null)
@@ -201,7 +225,10 @@ public class Subcommands {
         
     }
     
-    
+    /**
+     * Set red spawn.
+     * @param player
+     */
     public void setRed(Player player){
         World world = player.getLocation().getWorld();
         double x = player.getLocation().getBlockX();
@@ -215,6 +242,10 @@ public class Subcommands {
         player.sendMessage(ChatColor.YELLOW + "Red spawn selected.");
     }
     
+    /**
+     * Set green spawn.
+     * @param player
+     */
     public void setGreen(Player player){
         World world = player.getLocation().getWorld();
         double x = player.getLocation().getBlockX();
@@ -228,6 +259,10 @@ public class Subcommands {
         player.sendMessage(ChatColor.YELLOW + "Green spawn selected.");
     }
     
+    /**
+     * Set lobby.
+     * @param player
+     */
     public void setLobby(Player player){
         World world = player.getLocation().getWorld();
         double x = player.getLocation().getBlockX();
@@ -241,9 +276,14 @@ public class Subcommands {
         player.sendMessage(ChatColor.YELLOW + "Lobby spawn selected.");
     }
     
+    /**
+     * Display mod commands.
+     * @param player
+     */
     public void helpMod(Player player){
         player.sendMessage(ChatColor.BLUE + "WINTERSLASH MODERATOR COMMANDS");
         player.sendMessage("/ws list");
+        player.sendMessage("/ws join");
         player.sendMessage("/ws join <arenaname>");
         player.sendMessage("/ws leave");
         player.sendMessage("/ws remove <arenaname>");
@@ -251,15 +291,42 @@ public class Subcommands {
         player.sendMessage("/ws setgreen");
         player.sendMessage("/ws setlobby");
         player.sendMessage("/ws create <arenaname> <minimim playernumber>");
-        player.sendMessage("/ws pn <global maximum playernumber>");
+        player.sendMessage("/ws fs <arenaname>");
+        player.sendMessage("/ws end <arenaname>");
+        player.sendMessage("/ws joinall <arenaname>" + ChatColor.RED + " --> DEBUG ONLY!!!");
         
     }
     
+    /**
+     * Display user commands
+     * @param player
+     */
     public void helpPlayer(Player player){
         player.sendMessage(ChatColor.BLUE + "WINTERSLASH USER COMMANDS");
         player.sendMessage("/ws list");
+        player.sendMessage("/ws join");
         player.sendMessage("/ws join <arenaname>");
         player.sendMessage("/ws leave");
+    }
+
+
+
+
+    /**
+     * Force ends the arena
+     * @param player
+     * @param arenaName
+     */
+    public void forceEnd(Player player, String arenaName) {
+        
+        if(gameController.getArena(arenaName).isInGame() == true){
+            gameController.endKick(gameController.getArena(arenaName).getName());
+            gameController.endArena(gameController.getArena(arenaName).getName());
+            return;
+        }else{
+            player.sendMessage(ChatColor.YELLOW + "Can't end an empty arena!");
+        }
+        
     }
     
     
