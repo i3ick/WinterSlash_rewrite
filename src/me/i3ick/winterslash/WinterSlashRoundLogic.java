@@ -5,9 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-/**
- * Created by Karlo on 4/23/2015.
- */
+
 public class WinterSlashRoundLogic {
 
     private WinterSlashGameController gameController;
