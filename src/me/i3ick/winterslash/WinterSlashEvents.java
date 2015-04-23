@@ -12,13 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
-import org.bukkit.entity.Chicken;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Pig;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Squid;
-import org.bukkit.entity.Wolf;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -361,28 +355,14 @@ public class WinterSlashEvents implements Listener{
     @EventHandler
     public void pickup(PlayerPickupItemEvent e){
         Player p = (Player) e.getPlayer();
-        WinterSlashPlayerInfo info = new WinterSlashPlayerInfo(gameController);
-        if(!info.isInGame()){
-            return;
+        for (String arenas: gameController.arenaNameList) {
+            WinterSlashArena arena = gameController.getArena(arenas);
+            if (arena.getPlayers().contains(p.getName())) {
+                e.setCancelled(true);
+            }
         }
-        e.setCancelled(true);
     }
 
-    /**
-     * Cancel item dropping
-     * @param e
-     */
-    @EventHandler
-    public void drops(PlayerDropItemEvent e) {
-        Player p = (Player) e.getPlayer();
-        WinterSlashPlayerInfo info = new WinterSlashPlayerInfo(gameController);
-        if(!info.isInGame()){
-            return;
-        }
-        e.setCancelled(true);
-
-    }
-    
 
     
     /**
@@ -411,7 +391,11 @@ public class WinterSlashEvents implements Listener{
               }
               
               if(arena.getPlayers().contains(p.getName())){
-                  
+                  e.getDrops().clear();
+
+                  if(!(killer instanceof LivingEntity)){
+                      return;
+                  }
 
               
                   if (arena.getRedTeam().contains(p.getName())) {
@@ -503,59 +487,8 @@ public class WinterSlashEvents implements Listener{
                           arena.removeGreenFrozen(p.getName());
                       }
                   }
-              
-                  // End game if green wins
-                  if (arena.getGreenFrozen().size() == arena.getGreenTeam().size()){
-                      //  end the game...
-                      arena.sendMessage(ChatColor.GREEN + "The RED team has won the game!");
-                      for(String b: arena.getGreenTeam()){
-                          Player pl = Bukkit.getPlayer(b);
-                          if(!(arena.getAlive().contains(pl.getName()))){
-                              gameController.addRestore(pl.getName());
-                          }
-                          
-                      }
-                      for(String a: arena.getRedTeam()){
-                          Player pl = Bukkit.getPlayer(a);
-                          if(arena.getAlive().contains(pl.getName())){
-                              gameController.awardMoney(pl);
-                          }else{
-                          gameController.Winner.add(a);
-                          }
-                          theEnd(pl, arenas);
-                      }
-                      return;
-                  }
-                  
-                  // End game if red wins
-                  if (arena.getRedFrozen().size() == arena.getRedTeam().size()) {
-                      //  end the game...
-                      for(String r: arena.getAlive()){
-                          Player pe = Bukkit.getPlayer(r);
-                          if(!(arena.getAlive().contains(pe.getName()))){
-                              gameController.addRestore(pe.getName());
-                          }
-                      }
-                      gameController.addRestore(p.getName());
-                      arena.sendMessage(ChatColor.GREEN + "The GREEN team has won the game!");
-                      for(String b: arena.getRedTeam()){
-                          Player pl = Bukkit.getPlayer(b);
-                          if(!(arena.getAlive().contains(pl.getName()))){
-                              gameController.addRestore(pl.getName());
-                          }
-                          
-                      }
-                      for(String a: arena.getGreenTeam()){
-                          Player pl = Bukkit.getPlayer(a);
-                          if(arena.getAlive().contains(pl.getName())){
-                              gameController.awardMoney(pl);
-                          }else{
-                          gameController.Winner.add(a);
-                          }
-                          theEnd(pl, arenas);
-                      }
-                      return;
-                  } 
+                  WinterSlashRoundLogic rl = new WinterSlashRoundLogic(plugin, gameController);
+                  rl.calculate(arena);
               }
           }
       }
@@ -617,7 +550,7 @@ public class WinterSlashEvents implements Listener{
             }
         }
     }
-      
+
       
     
       /**
@@ -792,20 +725,20 @@ public class WinterSlashEvents implements Listener{
         }, 60L);
     }
       
-      public void theEnd(final Player player,final String arenas) {
+      public void theEnd(final Player player,final String arena) {
           BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
           scheduler.scheduleSyncDelayedTask(plugin, new Runnable() {
               @Override
               public void run() {
-                  WinterSlashArena arena = gameController.getArena(arenas);
-                  gameController.endKick(arena.getName());
-                  gameController.removePlayers(player, arenas);
+                  gameController.endKick(arena);
+                  gameController.removePlayer(player, arena);
 
                           
             }
         }, 20L);
     }
-      
+
+
       
       public void runDelayTeleportRed(final Player player) {
           BukkitScheduler scheduler = Bukkit.getServer().getScheduler();

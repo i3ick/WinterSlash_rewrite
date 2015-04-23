@@ -78,9 +78,11 @@ public class MainCommand implements CommandExecutor {
             }
             if(args.length == 1){
                 subcmnds.joinRandom(player);
+                return true;
             }
             if(args.length == 2){
                 subcmnds.join(player, args[1]);
+                return true;
             }else{
                 player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws join <arenaname>");
                 return true;
@@ -108,6 +110,8 @@ public class MainCommand implements CommandExecutor {
             if(args.length == 2){
                 subcmnds.forceStart(player, args[1]);
             }
+            player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws fs <arenaname>");
+            return true;
             
         }
         
@@ -118,20 +122,13 @@ public class MainCommand implements CommandExecutor {
             }
             if(args.length == 2){
                 subcmnds.forceEnd(player, args[1]);
-            }
-            
-        }
-        
-        if(args[0].equalsIgnoreCase("end")){
-            if(!sender.hasPermission("winterslash.forceend")){
-                sender.sendMessage("No permission!");
                 return true;
             }
-            if(args.length == 2){
-                subcmnds.forceEnd(player, args[1]);
-            }
+            player.sendMessage(ChatColor.YELLOW + "Proper forumalation is: /ws end <arenaname>");
+            return true;
             
         }
+
         
         if(args[0].equalsIgnoreCase("award")){
             if(!sender.hasPermission("winterslash.award")){
@@ -142,7 +139,8 @@ public class MainCommand implements CommandExecutor {
             if(args.length == 2){
                 if(isDouble(args[1])){
                     Double dub = Double.parseDouble(args[1]);
-                    subcmnds.setAward(dub);
+                    subcmnds.setAward(dub, ((Player) sender).getPlayer());
+                    return true;
                 }
             }
         }

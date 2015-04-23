@@ -56,10 +56,12 @@ public class WinterSlashPlayerInfo {
        return this.name;
     }
 
+
+    // DON'T USE THIS, something isn't working. CBA to fix.
     public boolean isInGame(){
         for (String arenas : gameController.arenaNameList) {
             WinterSlashArena arena = gameController.getArena(arenas);
-            if ((arena.getPlayers().contains(name))) {
+            if ((arena.getGamers().contains(name))) {
                 return true;
             }
         }

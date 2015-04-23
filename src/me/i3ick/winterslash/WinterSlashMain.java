@@ -15,6 +15,7 @@ import net.milkbowl.vault.economy.EconomyResponse;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -139,7 +140,7 @@ public class WinterSlashMain extends JavaPlugin {
     }
 
     
-    private boolean setupEconomy() {
+    public boolean setupEconomy() {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
         }
@@ -206,7 +207,7 @@ public class WinterSlashMain extends JavaPlugin {
     
     
     // this code was taken from KingFaris11
-    public boolean saveInventoryToFile(Inventory inventory, File path, String fileName) {
+    public boolean saveInventoryToFile(Inventory inventory, File path, String fileName, GameMode gamemode) {
         if (inventory == null || path == null || fileName == null) return false;
         try {
             File invFile = new File(path, fileName + ".invsave");
@@ -214,6 +215,7 @@ public class WinterSlashMain extends JavaPlugin {
             FileConfiguration invConfig = YamlConfiguration.loadConfiguration(invFile);
 
             invConfig.set("Title", inventory.getTitle());
+            invConfig.set("GameMode", gamemode.toString());
             invConfig.set("Size", inventory.getSize());
             invConfig.set("Max stack size", inventory.getMaxStackSize());
             if (inventory.getHolder() instanceof Player) invConfig.set("Holder", ((Player) inventory.getHolder()).getName());
@@ -238,6 +240,7 @@ public class WinterSlashMain extends JavaPlugin {
             FileConfiguration invConfig = YamlConfiguration.loadConfiguration(file);
             Inventory inventory = null;
             String invTitle = invConfig.getString("Title", "Inventory");
+            String gm = (String) invConfig.get("GameMode");
             int invSize = invConfig.getInt("Size", 27);
             int invMaxStackSize = invConfig.getInt("Max stack size", 64);
             InventoryHolder invHolder = null;
@@ -261,7 +264,20 @@ public class WinterSlashMain extends JavaPlugin {
                 }
             } catch (Exception ex) {
             }
-            
+
+            String gamemode = gm;
+            switch (gamemode){
+                case "SURVIVAL":
+                    player.setGameMode(GameMode.SURVIVAL);
+                    break;
+                case "CREATIVE":
+                    player.setGameMode(GameMode.CREATIVE);
+                    break;
+                case "ADVENTURE":
+                    player.setGameMode(GameMode.ADVENTURE);
+                    break;
+            }
+
             return inventory;
         } catch (Exception ex) {
             return null;

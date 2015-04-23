@@ -34,8 +34,10 @@ public class WinterSlashArena {
     private ArrayList<String> alive = new ArrayList<String>();
     public ArrayList<String> disableFire = new ArrayList<String>();
     private ArrayList<String> clickedSign = new ArrayList<String>();
+    private int roundNumber;
+    private int redWins;
+    private int greenWins;
 
-    // Username suggests using arrays for teams ead of HashMaps!!!!
 
     private HashMap<String, Team> players = new HashMap<String, Team>();
     private Location redspawn;
@@ -108,9 +110,16 @@ public class WinterSlashArena {
         }
     }
 
-    public void minPlayers(int players){
-        this.minPlayers = players;
-    }
+    public void minPlayers(int players){this.minPlayers = players;}
+
+    public void nextRound(){this.roundNumber = this.roundNumber + 1; sendBroadcastMessage( this.roundNumber);}
+    public int getRound(){return this.roundNumber;}
+
+    public void addRedWin(){this.redWins = this.redWins + 1;}
+    public int getRedWins(){return this.redWins;}
+
+    public void addGreenWin(){this.greenWins = this.greenWins + 1;}
+    public int getGreenWins(){return this.greenWins;}
     
     public void setRed(Location redSpawn){
         this.redspawn = redSpawn;
@@ -243,15 +252,24 @@ public class WinterSlashArena {
      * Boolean to determine if an arena is ingame or not (auto false)
      */
     private boolean inGame = false;
-
+    private boolean isLast = false;
     private boolean isFrozen = false;
 
     public boolean isInGame() {
         return inGame;
     }
 
+    public boolean isLastRound() {
+        return isLast;
+    }
+
+    public void setLastRound(boolean isLast){
+        this.isLast = isLast;
+    }
+
     public void setInGame(boolean inGame) {
         this.inGame = inGame;
+        this.roundNumber = 1;
     }
 
     /**
@@ -276,6 +294,7 @@ public class WinterSlashArena {
 
     /**
      * Send a message to all ingame players
+     * @param message
      */
     public void sendMessage(String message) {
         for (String s : ingamePlayers) {
@@ -285,8 +304,24 @@ public class WinterSlashArena {
             }
         }
     }
-    
-    
+
+    /**
+     * Show a title over everyones screen
+     * @param roundNumber
+     */
+    public void sendBroadcastMessage(int roundNumber) {
+        for (String s : ingamePlayers) {
+            Player player = Bukkit.getServer().getPlayerExact(s);
+            if(player != null){
+                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + player.getName() + " times 5 18 5" );
+                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + player.getName() +
+                        " title [{text:Round-,color:red,bold:true},{text:" +
+                        roundNumber + ",color:gold,bold:false}]");
+            }
+        }
+    }
+
+
     public boolean ifPlayerIsRed(Player p) {
         for (String p1 : players.keySet()) {
         if(players.get(p1) == Team.RED){

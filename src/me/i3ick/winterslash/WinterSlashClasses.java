@@ -83,8 +83,6 @@ public class WinterSlashClasses {
         p.getInventory().addItem(knife);
         p.getInventory().setChestplate(chest);
         p.updateInventory();
-        this.carePackage(p);
-        this.randomPotion(p);
     }
 
     public void redArmor(Player p) {
@@ -200,13 +198,13 @@ public class WinterSlashClasses {
   }
 
     public void randomPotion(Player p){
-        PotionEffect potionEffect = new PotionEffect(PotionEffectType.SPEED, 300, 2);
-        PotionEffect potionEffect2 = new PotionEffect(PotionEffectType.JUMP, 300, 2);
-        PotionEffect potionEffect3 = new PotionEffect(PotionEffectType.HEALTH_BOOST, 300, 2);
-        PotionEffect potionEffect4 = new PotionEffect(PotionEffectType.ABSORPTION, 300, 2);
-        PotionEffect potionEffect5 = new PotionEffect(PotionEffectType.REGENERATION, 300, 2);
-        PotionEffect potionEffect6 = new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 300, 2);
-        PotionEffect potionEffect7 = new PotionEffect(PotionEffectType.INVISIBILITY, 120, 2);
+        PotionEffect potionEffect = new PotionEffect(PotionEffectType.SPEED, 600, 2);
+        PotionEffect potionEffect2 = new PotionEffect(PotionEffectType.JUMP, 600, 2);
+        PotionEffect potionEffect3 = new PotionEffect(PotionEffectType.HEALTH_BOOST, 600, 2);
+        PotionEffect potionEffect4 = new PotionEffect(PotionEffectType.ABSORPTION, 600, 2);
+        PotionEffect potionEffect5 = new PotionEffect(PotionEffectType.REGENERATION, 600, 2);
+        PotionEffect potionEffect6 = new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 600, 2);
+        PotionEffect potionEffect7 = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 600, 2);
 
 
 

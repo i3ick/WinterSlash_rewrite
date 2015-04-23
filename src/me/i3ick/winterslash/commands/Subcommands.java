@@ -103,17 +103,19 @@ public class Subcommands {
      */
     
     public void leave(Player player){
-        
         for (String arenas: gameController.arenaNameList) {
             WinterSlashArena arena = gameController.getArena(arenas);
+            if(arena.getGamers() == null){
+                return;
+            }
             if(arena.getGamers().contains(player.getName())){
-              
-                gameController.removePlayers(player, arena.getName());
+                gameController.removePlayer(player, arena.getName());
                 gameController.playersInGame.remove(player.getName());
-                gameController.stats.remove(player.getName());            
+                gameController.stats.remove(player.getName());
+                return;
             }
         }
-       
+        player.sendMessage(ChatColor.YELLOW + "You are not in an arena!");
     }
     
     
@@ -164,11 +166,16 @@ public class Subcommands {
      * @param number
      */
     
-    public void setAward(double number){
+    public void setAward(double number, Player sender){
+        if(!plugin.setupEconomy()){
+            sender.sendMessage(ChatColor.RED + "Vault is disabled!");
+            return;
+        }
         plugin.getConfig().set("Settings." + "Award", number);
         gameController.awardAmount.clear();
         gameController.awardAmount.put("amount", new Double(number));
         plugin.saveConfig();
+        sender.sendMessage(ChatColor.YELLOW + "Win award is now set to be " + number + "$!");
     }
 
 
@@ -192,6 +199,7 @@ public class Subcommands {
                     e.printStackTrace();
                 }
                 gameController.arenaObjects.remove(Arenaname);
+                gameController.arenaNameList.remove(Arenaname);
                 sender.sendMessage(ChatColor.YELLOW + "Arena " + Arenaname + " sucessfully deleted!");
                 return;
             }
@@ -281,7 +289,7 @@ public class Subcommands {
      * @param player
      */
     public void helpMod(Player player){
-        player.sendMessage(ChatColor.BLUE + "WINTERSLASH MODERATOR COMMANDS");
+        player.sendMessage(ChatColor.GOLD + "WINTERSLASH MODERATOR COMMANDS");
         player.sendMessage("/ws list");
         player.sendMessage("/ws join");
         player.sendMessage("/ws join <arenaname>");
@@ -290,6 +298,7 @@ public class Subcommands {
         player.sendMessage("/ws setred");
         player.sendMessage("/ws setgreen");
         player.sendMessage("/ws setlobby");
+        player.sendMessage("/ws award <amount>");
         player.sendMessage("/ws create <arenaname> <minimim playernumber>");
         player.sendMessage("/ws fs <arenaname>");
         player.sendMessage("/ws end <arenaname>");
