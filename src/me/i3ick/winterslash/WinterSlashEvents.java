@@ -44,30 +44,6 @@ public class WinterSlashEvents implements Listener{
     
     
 
-
-    
-
-    //Keeps frozen players still - Disable movement
- 
-/*    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerMove(PlayerMoveEvent e) {
-
-        
-        for (String arenas: gameController.arenaNameList){
-            WinterSlashArena arena = gameController.getArena(arenas);
-            if(arena == null){
-                return;
-            }
-            PotionEffect potionEffect1 = new PotionEffect(PotionEffectType.SLOW, 24000, 100); 
-            PotionEffect potionEffect2 = new PotionEffect(PotionEffectType.JUMP, 24000, -100); 
-            if(arena.getPlayers().contains(e.getPlayer().getName())){
-                if (!(arena.getUnfrozen().contains(e.getPlayer().getName()))) {
-                    e.setCancelled(true);
-         }
-         return;
-        }
-            }
-        } */
     
     /**
      * Care Package GUI logic
